@@ -26,11 +26,13 @@
             <div class="top-controls d-flex justify-content-end gap-2 align-items-center">
                 <!-- Dropdown de Idioma -->
                 <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="btn-lang" data-bs-toggle="dropdown" aria-expanded="false" title="Cambiar Idioma">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="btn-lang"
+                        data-bs-toggle="dropdown" aria-expanded="false" title="Cambiar Idioma">
                         <i class="fas fa-globe"></i> <span id="current-lang">ES</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="btn-lang">
-                        <li><a class="dropdown-item lang-option active" href="#" data-lang="es">🇪🇸 Español (ES)</a></li>
+                        <li><a class="dropdown-item lang-option active" href="#" data-lang="es">🇪🇸 Español (ES)</a>
+                        </li>
                         <li><a class="dropdown-item lang-option" href="#" data-lang="en">🇬🇧 English (EN)</a></li>
                     </ul>
                 </div>
@@ -48,7 +50,7 @@
                     <span class="are">ARE</span>
                     <span class="number">26</span>
                 </h1>
-                <p class="lead subtitle" data-i18n="title">Control de Estampas Del Albúm del Mundial Panini 2026</p>
+                <p class="lead subtitle" data-i18n="title">Control de Estampas Del Álbum del Mundial Panini 2026</p>
             </div>
         </header>
 
@@ -117,14 +119,17 @@
                 <div class="col-lg-4">
                     <!-- Add Sticker -->
                     <div class="glass-card p-4 mb-4 control-panel">
-                        <h4 class="mb-3"><i class="fas fa-plus-circle text-accent"></i> <span data-i18n="register">Registrar Estampa</span></h4>
+                        <h4 class="mb-3"><i class="fas fa-plus-circle text-accent"></i> <span
+                                data-i18n="register">Registrar Estampa</span></h4>
                         <form id="add-form" class="needs-validation" novalidate>
                             <div class="mb-3">
-                                <label for="sticker-number" class="form-label" data-i18n="codeLabel">Código de Estampa (Ej. MEX 1)</label>
+                                <label for="sticker-number" class="form-label" data-i18n="codeLabel">Código de Estampa
+                                    (Ej. MEX 1)</label>
                                 <div class="input-group input-group-lg">
                                     <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
                                     <input type="text" class="form-control" id="sticker-number" required
-                                        data-i18n-placeholder="codePlaceholder" placeholder="Ej. MEX 1" autocomplete="off" style="text-transform: uppercase;">
+                                        data-i18n-placeholder="codePlaceholder" placeholder="Ej. MEX 1"
+                                        autocomplete="off" style="text-transform: uppercase;">
                                     <button class="btn btn-accent" type="submit" data-i18n="addBtn">Agregar</button>
                                 </div>
                             </div>
@@ -137,11 +142,12 @@
 
                     <!-- Search -->
                     <div class="glass-card p-4 search-panel">
-                        <h4 class="mb-3"><i class="fas fa-search text-info"></i> <span data-i18n="searchTitle">Buscar Estampa</span></h4>
+                        <h4 class="mb-3"><i class="fas fa-search text-info"></i> <span data-i18n="searchTitle">Buscar
+                                Estampa</span></h4>
                         <div class="input-group">
                             <input type="text" class="form-control" id="search-input"
-                                data-i18n-placeholder="searchPlaceholder" placeholder="Buscar estampa (Ej. FWC 5)..." autocomplete="off"
-                                style="text-transform: uppercase;">
+                                data-i18n-placeholder="searchPlaceholder" placeholder="Buscar estampa (Ej. FWC 5)..."
+                                autocomplete="off" style="text-transform: uppercase;">
                             <button class="btn btn-outline-info" type="button" id="search-btn"><i
                                     class="fas fa-search"></i></button>
                         </div>
@@ -153,7 +159,8 @@
                 <div class="col-lg-5" id="album-panel">
                     <div class="glass-card p-4 h-100 data-panel">
                         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                            <h4 class="m-0" id="album-title"><i class="fas fa-th text-info"></i> <span id="album-title-text" data-i18n="album">Álbum</span></h4>
+                            <h4 class="m-0" id="album-title"><i class="fas fa-th text-info"></i> <span
+                                    id="album-title-text" data-i18n="album">Álbum</span></h4>
                             <select id="section-filter"
                                 class="form-select form-select-sm w-auto bg-dark text-white border-secondary">
                                 <option value="ALL" data-i18n="allSections">Todas las secciones</option>
@@ -169,7 +176,8 @@
                 <div class="col-lg-3" id="repeated-panel">
                     <div class="glass-card p-4 h-100 data-panel">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="m-0"><i class="fas fa-layer-group text-warning"></i> <span data-i18n="repeatedTitle">Repetidas</span></h4>
+                            <h4 class="m-0"><i class="fas fa-layer-group text-warning"></i> <span
+                                    data-i18n="repeatedTitle">Repetidas</span></h4>
                             <div>
                                 <button class="btn btn-sm btn-outline-light me-1" id="sort-repeated" title="Ordenar"><i
                                         class="fas fa-sort-numeric-down"></i></button>
@@ -178,7 +186,8 @@
                         </div>
                         <ul class="list-group list-group-flush repeated-list" id="repeated-list">
                             <!-- Populated by JS -->
-                            <li class="list-group-item text-center text-muted empty-msg" data-i18n="noRepeated">No hay repetidas aún</li>
+                            <li class="list-group-item text-center text-muted empty-msg" data-i18n="noRepeated">No hay
+                                repetidas aún</li>
                         </ul>
                     </div>
                 </div>
