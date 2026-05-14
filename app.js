@@ -162,6 +162,7 @@ const elements = {
     searchBtn: document.getElementById('search-btn'),
     searchResult: document.getElementById('search-result'),
     searchAutocomplete: document.getElementById('search-autocomplete'),
+    addAutocomplete: document.getElementById('add-autocomplete'),
 
     soundAdd: document.getElementById('sound-add'),
     soundError: document.getElementById('sound-error'),
@@ -300,11 +301,15 @@ function setupEventListeners() {
     });
 
     elements.searchInput.addEventListener('input', handleAutocomplete);
+    elements.inputNumber.addEventListener('input', handleAddAutocomplete);
     
     // Hide autocomplete when clicking outside
     document.addEventListener('click', (e) => {
         if (!elements.searchInput.contains(e.target) && (!elements.searchAutocomplete || !elements.searchAutocomplete.contains(e.target))) {
             if (elements.searchAutocomplete) elements.searchAutocomplete.style.display = 'none';
+        }
+        if (!elements.inputNumber.contains(e.target) && (!elements.addAutocomplete || !elements.addAutocomplete.contains(e.target))) {
+            if (elements.addAutocomplete) elements.addAutocomplete.style.display = 'none';
         }
     });
 
@@ -505,10 +510,10 @@ window.handleGridClick = function (code) {
 };
 
 // Autocomplete Logic
-function handleAutocomplete() {
-    let val = elements.searchInput.value.trim().toUpperCase().replace(/\s+/g, '');
+function showAutocomplete(inputEl, autocompleteEl, val, onSelectName, iconDefault) {
+    val = val.trim().toUpperCase().replace(/\s+/g, '');
     if (!val) {
-        elements.searchAutocomplete.style.display = 'none';
+        autocompleteEl.style.display = 'none';
         return;
     }
 
@@ -526,28 +531,42 @@ function handleAutocomplete() {
     suggestions = suggestions.slice(0, 8); // Top 8 results
     
     if (suggestions.length === 0) {
-        elements.searchAutocomplete.style.display = 'none';
+        autocompleteEl.style.display = 'none';
         return;
     }
 
     let html = '';
     suggestions.forEach(code => {
         const isObtained = albumData.obtained.includes(code);
-        let icon = '<i class="fas fa-search text-muted me-2"></i>';
+        let icon = `<i class="fas ${iconDefault} text-muted me-2"></i>`;
         if (isObtained) {
             icon = '<i class="fas fa-check text-success me-2" title="Ya obtenida"></i>';
         }
-        html += `<li class="list-group-item list-group-item-action autocomplete-item" onclick="selectAutocomplete('${code}')">${icon}${code}</li>`;
+        html += `<li class="list-group-item list-group-item-action autocomplete-item" onclick="${onSelectName}('${code}')">${icon}${code}</li>`;
     });
 
-    elements.searchAutocomplete.innerHTML = html;
-    elements.searchAutocomplete.style.display = 'block';
+    autocompleteEl.innerHTML = html;
+    autocompleteEl.style.display = 'block';
+}
+
+function handleAutocomplete() {
+    showAutocomplete(elements.searchInput, elements.searchAutocomplete, elements.searchInput.value, 'selectAutocomplete', 'fa-search');
+}
+
+function handleAddAutocomplete() {
+    showAutocomplete(elements.inputNumber, elements.addAutocomplete, elements.inputNumber.value, 'selectAddAutocomplete', 'fa-hashtag');
 }
 
 window.selectAutocomplete = function(code) {
     elements.searchInput.value = code;
     elements.searchAutocomplete.style.display = 'none';
     handleSearch();
+};
+
+window.selectAddAutocomplete = function(code) {
+    elements.inputNumber.value = code;
+    elements.addAutocomplete.style.display = 'none';
+    elements.inputNumber.focus();
 };
 
 // Search Logic
