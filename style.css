@@ -338,12 +338,10 @@ body {
 
 /* Autocomplete */
 .autocomplete-list {
-    background: var(--card-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: #1e293b; /* Solid color to prevent overlap visibility */
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
     z-index: 1050;
     overflow: hidden;
 }
@@ -358,7 +356,7 @@ body {
     color: var(--text-main);
 }
 [data-bs-theme="light"] .autocomplete-list {
-    background: rgba(255, 255, 255, 0.95);
+    background: #ffffff;
     border: 1px solid rgba(0, 0, 0, 0.1);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
 }
