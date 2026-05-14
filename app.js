@@ -1,7 +1,7 @@
 const STICKER_GROUPS = [
     { prefix: 'FWC', max: 19, name: 'FIFA' },
     { prefix: 'MEX', max: 20, name: 'México' },
-    { prefix: 'RAS', max: 20, name: 'Sudáfrica' },
+    { prefix: 'RSA', max: 20, name: 'Sudáfrica' },
     { prefix: 'KOR', max: 20, name: 'Corea del Sur' },
     { prefix: 'CZE', max: 20, name: 'República Checa' },
     { prefix: 'CAN', max: 20, name: 'Canadá' },
@@ -549,6 +549,33 @@ function handleSearch() {
     searchTimeout = setTimeout(() => {
         closeSearchResult();
     }, 3000);
+
+    // Scroll to element and highlight
+    setTimeout(() => {
+        const elId = `sticker-${code.replace(' ', '-')}`;
+        const el = document.getElementById(elId);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Highlight animation
+            const oldTransition = el.style.transition;
+            el.style.transition = 'all 0.3s ease';
+            el.style.boxShadow = '0 0 15px var(--accent-color)';
+            el.style.transform = 'scale(1.1)';
+            el.style.zIndex = '10';
+            
+            setTimeout(() => {
+                el.style.boxShadow = '';
+                el.style.transform = '';
+                el.style.zIndex = '';
+                setTimeout(() => el.style.transition = oldTransition, 300);
+            }, 2000);
+        }
+    }, 100);
+
+    // Clear search input
+    elements.searchInput.value = '';
+    elements.searchInput.blur();
 }
 
 window.closeSearchResult = function () {
