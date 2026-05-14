@@ -91,6 +91,16 @@ body {
     box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
 }
 
+.control-panel {
+    position: relative;
+    z-index: 20;
+}
+
+.search-panel {
+    position: relative;
+    z-index: 10;
+}
+
 /* Typography & Colors */
 .text-accent {
     color: var(--accent) !important;
