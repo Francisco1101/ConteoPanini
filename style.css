@@ -125,6 +125,7 @@ body {
 .we-are-26-title .number {
     background: linear-gradient(45deg, var(--fifa-cyan), var(--fifa-pink));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     font-size: 5rem;
 }
@@ -334,6 +335,26 @@ body {
 .status-obtained { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; }
 .status-missing { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #f87171; }
 .status-repeated { background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fbbf24; }
+
+/* Autocomplete */
+.autocomplete-item {
+    cursor: pointer;
+    background-color: var(--card-bg);
+    color: var(--text-main);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+.autocomplete-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+}
+[data-bs-theme="light"] .autocomplete-item {
+    background-color: #fff;
+    color: #1e293b;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+[data-bs-theme="light"] .autocomplete-item:hover {
+    background-color: #f1f5f9;
+}
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {

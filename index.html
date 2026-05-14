@@ -146,12 +146,15 @@
                     <div class="glass-card p-4 search-panel">
                         <h4 class="mb-3"><i class="fas fa-search text-info"></i> <span data-i18n="searchTitle">Buscar
                                 Estampa</span></h4>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="search-input"
-                                data-i18n-placeholder="searchPlaceholder" placeholder="Buscar estampa (Ej. FWC 5)..."
-                                autocomplete="off" style="text-transform: uppercase;">
-                            <button class="btn btn-outline-info" type="button" id="search-btn"><i
-                                    class="fas fa-search"></i></button>
+                        <div class="position-relative">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="search-input"
+                                    data-i18n-placeholder="searchPlaceholder" placeholder="Buscar estampa (Ej. FWC 5)..."
+                                    autocomplete="off" style="text-transform: uppercase;">
+                                <button class="btn btn-outline-info" type="button" id="search-btn"><i
+                                        class="fas fa-search"></i></button>
+                            </div>
+                            <ul id="search-autocomplete" class="list-group position-absolute w-100 mt-1" style="display:none; z-index: 1050; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;"></ul>
                         </div>
                         <div id="search-result" class="mt-3 text-center" style="display: none;"></div>
                     </div>

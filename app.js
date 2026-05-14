@@ -161,6 +161,7 @@ const elements = {
     searchInput: document.getElementById('search-input'),
     searchBtn: document.getElementById('search-btn'),
     searchResult: document.getElementById('search-result'),
+    searchAutocomplete: document.getElementById('search-autocomplete'),
 
     soundAdd: document.getElementById('sound-add'),
     soundError: document.getElementById('sound-error'),
@@ -289,9 +290,21 @@ function setupEventListeners() {
 
     elements.searchBtn.addEventListener('click', handleSearch);
     elements.searchInput.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') handleSearch();
+        if (e.key === 'Enter') {
+            elements.searchAutocomplete.style.display = 'none';
+            handleSearch();
+        }
         if (elements.searchInput.value === '') {
             elements.searchResult.style.display = 'none';
+        }
+    });
+
+    elements.searchInput.addEventListener('input', handleAutocomplete);
+    
+    // Hide autocomplete when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!elements.searchInput.contains(e.target) && (!elements.searchAutocomplete || !elements.searchAutocomplete.contains(e.target))) {
+            if (elements.searchAutocomplete) elements.searchAutocomplete.style.display = 'none';
         }
     });
 
@@ -489,6 +502,52 @@ window.handleGridClick = function (code) {
             }
         });
     }
+};
+
+// Autocomplete Logic
+function handleAutocomplete() {
+    let val = elements.searchInput.value.trim().toUpperCase().replace(/\s+/g, '');
+    if (!val) {
+        elements.searchAutocomplete.style.display = 'none';
+        return;
+    }
+
+    let suggestions = [];
+    for (const group of STICKER_GROUPS) {
+        for (let i = 1; i <= group.max; i++) {
+            const cleanCode = `${group.prefix}${i}`;
+            const displayCode = `${group.prefix} ${i}`;
+            if (cleanCode.includes(val)) {
+                suggestions.push(displayCode);
+            }
+        }
+    }
+    
+    suggestions = suggestions.slice(0, 8); // Top 8 results
+    
+    if (suggestions.length === 0) {
+        elements.searchAutocomplete.style.display = 'none';
+        return;
+    }
+
+    let html = '';
+    suggestions.forEach(code => {
+        const isObtained = albumData.obtained.includes(code);
+        let icon = '<i class="fas fa-search text-muted me-2"></i>';
+        if (isObtained) {
+            icon = '<i class="fas fa-check text-success me-2" title="Ya obtenida"></i>';
+        }
+        html += `<li class="list-group-item list-group-item-action autocomplete-item" onclick="selectAutocomplete('${code}')">${icon}${code}</li>`;
+    });
+
+    elements.searchAutocomplete.innerHTML = html;
+    elements.searchAutocomplete.style.display = 'block';
+}
+
+window.selectAutocomplete = function(code) {
+    elements.searchInput.value = code;
+    elements.searchAutocomplete.style.display = 'none';
+    handleSearch();
 };
 
 // Search Logic
