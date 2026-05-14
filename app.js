@@ -53,7 +53,7 @@ const STICKER_GROUPS = [
 
 const TRANSLATIONS = {
     es: {
-        title: "Control de Estampas Del Albúm del Mundial Panini 2026",
+        title: "Control de Estampas Del Álbum del Mundial Panini 2026",
         reset: "Reiniciar",
         progress: "Progreso del Álbum",
         total: "Total Álbum",
@@ -139,29 +139,29 @@ const elements = {
     form: document.getElementById('add-form'),
     inputNumber: document.getElementById('sticker-number'),
     isRepeated: document.getElementById('is-repeated'),
-    
+
     statTotal: document.getElementById('stat-total'),
     statObtained: document.getElementById('stat-obtained'),
     statRepeated: document.getElementById('stat-repeated'),
     statMissing: document.getElementById('stat-missing'),
-    
+
     progressBar: document.getElementById('progress-bar'),
     progressText: document.getElementById('progress-text'),
-    
+
     missingList: document.getElementById('album-list'), // Renamed visually but id kept as album-list
     repeatedList: document.getElementById('repeated-list'),
     badgeMissing: document.getElementById('stat-missing'), // Using the stat badge
     badgeRepeated: document.getElementById('badge-repeated'),
-    
+
     btnSortRepeated: document.getElementById('sort-repeated'),
     btnReset: document.getElementById('btn-reset'),
     btnTheme: document.getElementById('btn-theme'),
     sectionFilter: document.getElementById('section-filter'),
-    
+
     searchInput: document.getElementById('search-input'),
     searchBtn: document.getElementById('search-btn'),
     searchResult: document.getElementById('search-result'),
-    
+
     soundAdd: document.getElementById('sound-add'),
     soundError: document.getElementById('sound-error'),
     soundCelebrate: document.getElementById('sound-celebrate')
@@ -171,7 +171,7 @@ const elements = {
 function init() {
     loadTheme();
     loadData();
-    elements.statTotal.innerText = TOTAL_STICKERS; 
+    elements.statTotal.innerText = TOTAL_STICKERS;
     setLanguage(currentLang);
     populateFilters();
     updateUI();
@@ -204,7 +204,7 @@ function setTheme(theme) {
 function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('panini2026_lang', lang);
-    
+
     // Update texts
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
@@ -220,7 +220,7 @@ function setLanguage(lang) {
             el.placeholder = TRANSLATIONS[lang][key];
         }
     });
-    
+
     // Update active class in dropdown
     document.getElementById('current-lang').innerText = lang.toUpperCase();
     document.querySelectorAll('.lang-option').forEach(el => {
@@ -235,7 +235,7 @@ function setLanguage(lang) {
     populateFilters();
     renderRepeated();
     renderAlbum();
-    
+
     // Update current view mode title
     setViewMode(currentViewMode, true);
 }
@@ -282,11 +282,11 @@ function playSound(type) {
 function setupEventListeners() {
     elements.form.addEventListener('submit', handleAddSticker);
     elements.btnSortRepeated.addEventListener('click', renderRepeated);
-    
+
     elements.btnReset.addEventListener('click', handleReset);
     elements.btnTheme.addEventListener('click', toggleTheme);
     elements.sectionFilter.addEventListener('change', renderAlbum);
-    
+
     elements.searchBtn.addEventListener('click', handleSearch);
     elements.searchInput.addEventListener('keyup', (e) => {
         if (e.key === 'Enter') handleSearch();
@@ -294,7 +294,7 @@ function setupEventListeners() {
             elements.searchResult.style.display = 'none';
         }
     });
-    
+
     document.querySelectorAll('.lang-option').forEach(el => {
         el.addEventListener('click', (e) => {
             e.preventDefault();
@@ -322,11 +322,11 @@ function parseStickerCode(input) {
 // Add Sticker Logic
 function handleAddSticker(e) {
     e.preventDefault();
-    
+
     const val = elements.inputNumber.value;
     const code = parseStickerCode(val);
     const isRep = elements.isRepeated.checked;
-    
+
     if (!code) {
         playSound('error');
         Swal.fire({
@@ -374,11 +374,11 @@ function handleAddSticker(e) {
             const msg = currentLang === 'en' ? `Sticker ${code} pasted in album!` : `¡Estampa ${code} pegada en el álbum!`;
             showToast('success', msg);
             playSound('add');
-            
+
             if (albumData.obtained.length === TOTAL_STICKERS) {
                 triggerCelebration();
             }
-            
+
             // Scroll to element
             setTimeout(() => {
                 const elId = `sticker-${code.replace(' ', '-')}`;
@@ -389,10 +389,10 @@ function handleAddSticker(e) {
             }, 100);
         }
     }
-    
+
     saveData();
     updateUI();
-    
+
     elements.inputNumber.value = '';
     elements.inputNumber.focus();
     elements.isRepeated.checked = false;
@@ -422,7 +422,7 @@ function handleReset() {
 }
 
 // Remove Repeated Sticker
-window.removeRepeated = function(codeStr) {
+window.removeRepeated = function (codeStr) {
     if (albumData.repeated[codeStr]) {
         albumData.repeated[codeStr]--;
         if (albumData.repeated[codeStr] <= 0) {
@@ -434,24 +434,24 @@ window.removeRepeated = function(codeStr) {
     }
 };
 
-window.setViewMode = function(mode, noToast = false) {
+window.setViewMode = function (mode, noToast = false) {
     currentViewMode = mode;
     let title = TRANSLATIONS[currentLang].album;
     if (mode === 'MISSING') title = TRANSLATIONS[currentLang].albumMissing;
     if (mode === 'OBTAINED') title = TRANSLATIONS[currentLang].albumObtained;
     if (mode === 'REPEATED') title = TRANSLATIONS[currentLang].albumRepeated;
-    
+
     document.getElementById('album-title-text').innerText = title;
-    
+
     // Mostrar aviso
     if (!noToast) showToast('info', `${TRANSLATIONS[currentLang].toastFilter} ${title}`);
-    
+
     // Also scroll to album
-    if (!noToast) document.getElementById('album-panel').scrollIntoView({behavior: 'smooth'});
+    if (!noToast) document.getElementById('album-panel').scrollIntoView({ behavior: 'smooth' });
     renderAlbum();
 };
 
-window.handleGridClick = function(code) {
+window.handleGridClick = function (code) {
     const isObtained = albumData.obtained.includes(code);
     if (!isObtained) {
         albumData.obtained.push(code);
@@ -495,9 +495,9 @@ window.handleGridClick = function(code) {
 function handleSearch() {
     const val = elements.searchInput.value;
     if (!val) return;
-    
+
     const code = parseStickerCode(val);
-    
+
     if (!code) {
         Swal.fire({
             icon: 'error',
@@ -512,19 +512,19 @@ function handleSearch() {
         });
         return;
     }
-    
+
     const res = elements.searchResult;
     res.style.display = 'block';
     res.className = 'search-result-card mt-3 text-center position-relative';
-    
+
     let html = `
         <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Close" onclick="closeSearchResult()" style="font-size: 0.8rem; box-shadow: none;"></button>
         <h5>${currentLang === 'en' ? 'Sticker' : 'Estampa'} ${code}</h5>
     `;
-    
+
     const hasObtained = albumData.obtained.includes(code);
     const hasRepeated = (albumData.repeated[code] || 0) > 0;
-    
+
     if (hasObtained && hasRepeated) {
         res.classList.add('status-repeated');
         const txt = currentLang === 'en' ? `You have it and it's repeated (${albumData.repeated[code]}x)` : `La tienes y está repetida (${albumData.repeated[code]}x)`;
@@ -542,16 +542,16 @@ function handleSearch() {
         const txt = currentLang === 'en' ? `Missing` : `Te falta`;
         html += `<p class="mb-0"><i class="fas fa-times"></i> ${txt}</p>`;
     }
-    
+
     res.innerHTML = html;
-    
+
     if (searchTimeout) clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
         closeSearchResult();
     }, 3000);
 }
 
-window.closeSearchResult = function() {
+window.closeSearchResult = function () {
     if (elements.searchResult) {
         elements.searchResult.style.display = 'none';
     }
@@ -567,18 +567,18 @@ function updateUI() {
 function updateStats() {
     const obtainedCount = albumData.obtained.length;
     const missingCount = TOTAL_STICKERS - obtainedCount;
-    
+
     let repeatedCount = 0;
     for (const code in albumData.repeated) {
         repeatedCount += albumData.repeated[code];
     }
-    
+
     const percentage = ((obtainedCount / TOTAL_STICKERS) * 100).toFixed(1);
-    
+
     elements.statObtained.innerText = obtainedCount;
     elements.statMissing.innerText = missingCount;
     elements.statRepeated.innerText = repeatedCount;
-    
+
     elements.progressBar.style.width = `${percentage}%`;
     elements.progressText.innerText = `${percentage}%`;
 }
@@ -586,52 +586,52 @@ function updateStats() {
 function renderAlbum() {
     let html = '';
     const filter = elements.sectionFilter.value;
-    
+
     for (const group of STICKER_GROUPS) {
         if (filter !== 'ALL' && filter !== group.prefix) continue;
-        
+
         let hasContent = false;
         const name = currentLang === 'en' && group.name_en ? group.name_en : group.name;
         let groupHtml = `<div class="w-100 mt-3" style="grid-column: 1 / -1; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; margin-bottom: 5px;">
                         <span class="text-info fw-bold" style="letter-spacing: 1px;">${name} (${group.prefix})</span>
                      </div>`;
-                     
+
         for (let i = 1; i <= group.max; i++) {
             const code = `${group.prefix} ${i}`;
             const id = `sticker-${group.prefix}-${i}`;
             const isObtained = albumData.obtained.includes(code);
             const isRepeated = (albumData.repeated[code] || 0) > 0;
-            
+
             if (currentViewMode === 'MISSING' && isObtained) continue;
             if (currentViewMode === 'OBTAINED' && !isObtained) continue;
             if (currentViewMode === 'REPEATED' && !isRepeated) continue;
-            
+
             hasContent = true;
-            
+
             let stateClass = 'missing';
             if (isObtained) {
                 stateClass = isRepeated ? 'repeated-album' : 'obtained';
             }
-            
+
             groupHtml += `<div id="${id}" class="missing-item ${stateClass}" title="${code}" onclick="handleGridClick('${code}')">${code}</div>`;
         }
-        
+
         if (hasContent) {
             html += groupHtml;
         }
     }
-    
+
     elements.missingList.innerHTML = html;
 }
 
 function renderRepeated() {
     const repeatedKeys = Object.keys(albumData.repeated);
-    
+
     if (repeatedKeys.length === 0) {
         elements.repeatedList.innerHTML = `<li class="list-group-item text-center text-muted empty-msg" style="background:transparent; border:none;" data-i18n="noRepeated">${TRANSLATIONS[currentLang].noRepeated}</li>`;
         return;
     }
-    
+
     // Sort logically by group then number
     repeatedKeys.sort((a, b) => {
         const [pA, nA] = a.split(' ');
@@ -639,7 +639,7 @@ function renderRepeated() {
         if (pA === pB) return parseInt(nA) - parseInt(nB);
         return pA.localeCompare(pB);
     });
-    
+
     let html = '';
     repeatedKeys.forEach(code => {
         const qty = albumData.repeated[code];
@@ -655,7 +655,7 @@ function renderRepeated() {
             </li>
         `;
     });
-    
+
     elements.repeatedList.innerHTML = html;
 }
 
@@ -686,22 +686,22 @@ function triggerCelebration() {
         confirmButtonText: currentLang === 'en' ? 'Awesome!' : '¡Increíble!',
         confirmButtonColor: '#10b981'
     });
-    
+
     var duration = 15 * 1000;
     var animationEnd = Date.now() + duration;
     var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
 
     function randomInRange(min, max) {
-      return Math.random() * (max - min) + min;
+        return Math.random() * (max - min) + min;
     }
 
-    var interval = setInterval(function() {
-      var timeLeft = animationEnd - Date.now();
-      if (timeLeft <= 0) return clearInterval(interval);
+    var interval = setInterval(function () {
+        var timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) return clearInterval(interval);
 
-      var particleCount = 50 * (timeLeft / duration);
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+        var particleCount = 50 * (timeLeft / duration);
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
     }, 250);
 }
 
