@@ -337,23 +337,38 @@ body {
 .status-repeated { background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fbbf24; }
 
 /* Autocomplete */
+.autocomplete-list {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    z-index: 1050;
+    overflow: hidden;
+}
 .autocomplete-item {
     cursor: pointer;
-    background-color: var(--card-bg);
+    background-color: transparent;
     color: var(--text-main);
-    border-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.05);
 }
 .autocomplete-item:hover {
     background-color: rgba(255, 255, 255, 0.1);
     color: var(--text-main);
 }
+[data-bs-theme="light"] .autocomplete-list {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+}
 [data-bs-theme="light"] .autocomplete-item {
-    background-color: #fff;
+    background-color: transparent;
     color: #1e293b;
-    border-color: rgba(0, 0, 0, 0.1);
+    border-color: rgba(0, 0, 0, 0.05);
 }
 [data-bs-theme="light"] .autocomplete-item:hover {
-    background-color: #f1f5f9;
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 /* Responsive Adjustments */
