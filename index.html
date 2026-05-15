@@ -57,13 +57,20 @@
         </header>
 
         <div class="container-fluid px-4">
-            <!-- Progress Bar -->
-            <div class="row mb-4">
-                <div class="col-12">
+            <!-- Stats Dashboard (Shareable Node) -->
+            <div id="share-node" class="p-2" style="border-radius: 15px;">
+                <!-- Progress Bar -->
+                <div class="row mb-4">
+                    <div class="col-12">
                     <div class="glass-card p-3 progress-container">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="fw-bold" data-i18n="progress">Progreso del Álbum</span>
-                            <span id="progress-text" class="fw-bold fs-5 text-accent">0%</span>
+                        <div class="d-flex justify-content-between mb-2 align-items-center">
+                            <span class="fw-bold" id="progress-title" data-i18n="progress">Progreso del Álbum</span>
+                            <div class="d-flex align-items-center gap-3">
+                                <button class="btn btn-sm btn-outline-info share-btn" id="btn-share" title="Compartir Progreso" data-i18n-title="share">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                                <span id="progress-text" class="fw-bold fs-5 text-accent">0%</span>
+                            </div>
                         </div>
                         <div class="progress" style="height: 25px;">
                             <div id="progress-bar"
@@ -114,6 +121,8 @@
                     </div>
                 </div>
             </div>
+            </div>
+            <!-- End Shareable Node -->
 
             <!-- Main Content -->
             <div class="row g-4">
@@ -235,6 +244,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- HTML2Canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- App Script -->
     <script src="app.js"></script>
 </body>

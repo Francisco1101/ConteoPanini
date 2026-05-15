@@ -157,6 +157,7 @@ const elements = {
     btnSortRepeated: document.getElementById('sort-repeated'),
     btnReset: document.getElementById('btn-reset'),
     btnTheme: document.getElementById('btn-theme'),
+    btnShare: document.getElementById('btn-share'),
     sectionFilter: document.getElementById('section-filter'),
 
     searchInput: document.getElementById('search-input'),
@@ -288,6 +289,7 @@ function setupEventListeners() {
 
     elements.btnReset.addEventListener('click', handleReset);
     elements.btnTheme.addEventListener('click', toggleTheme);
+    if (elements.btnShare) elements.btnShare.addEventListener('click', handleShare);
     elements.sectionFilter.addEventListener('change', renderAlbum);
 
     elements.searchBtn.addEventListener('click', handleSearch);
@@ -439,6 +441,48 @@ function handleReset() {
             updateUI();
             showToast('info', TRANSLATIONS[currentLang].toastReset);
         }
+    });
+}
+
+// Share Logic
+function handleShare() {
+    const node = document.getElementById('share-node');
+    if (!node) return;
+
+    // Temporarily change text
+    const titleEl = document.getElementById('progress-title');
+    const originalText = titleEl.innerText;
+    const shareText = currentLang === 'en' ? "My Album's Progress" : "Progreso de mi álbum";
+    titleEl.innerText = shareText;
+
+    // Hide share button temporarily
+    elements.btnShare.style.display = 'none';
+
+    html2canvas(node, {
+        backgroundColor: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#0f172a' : '#ffffff',
+        scale: 2
+    }).then(canvas => {
+        // Revert text and button
+        titleEl.innerText = originalText;
+        elements.btnShare.style.display = '';
+
+        // Generate image
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = currentLang === 'en' ? 'panini_progress.png' : 'panini_progreso.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('success', currentLang === 'en' ? 'Image downloaded!' : '¡Imagen descargada!');
+        });
+    }).catch(err => {
+        titleEl.innerText = originalText;
+        elements.btnShare.style.display = '';
+        console.error("Error generating image", err);
+        showToast('error', currentLang === 'en' ? 'Error generating image' : 'Error al generar imagen');
     });
 }
 
