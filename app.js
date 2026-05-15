@@ -1,5 +1,5 @@
 const STICKER_GROUPS = [
-    { prefix: '00', max: 1, name: 'Panini' },
+    { prefix: '00', isSpecial: true, codes: ['00'], name: 'Intro', name_en: 'Intro' },
     { prefix: 'FWC', max: 19, name: 'FIFA' },
     { prefix: 'MEX', max: 20, name: 'México' },
     { prefix: 'RSA', max: 20, name: 'Sudáfrica' },
@@ -125,7 +125,7 @@ const TRANSLATIONS = {
 
 let currentLang = localStorage.getItem('panini2026_lang') || 'es';
 
-const TOTAL_STICKERS = STICKER_GROUPS.reduce((acc, g) => acc + g.max, 0);
+const TOTAL_STICKERS = STICKER_GROUPS.reduce((acc, g) => acc + (g.isSpecial ? g.codes.length : g.max), 0);
 
 let currentViewMode = 'ALL';
 let searchTimeout = null;
@@ -327,7 +327,9 @@ function setupEventListeners() {
 function parseStickerCode(input) {
     const clean = input.trim().toUpperCase().replace(/\s+/g, '');
     for (const group of STICKER_GROUPS) {
-        if (clean.startsWith(group.prefix)) {
+        if (group.isSpecial) {
+            if (group.codes.includes(clean)) return clean;
+        } else if (clean.startsWith(group.prefix)) {
             const numStr = clean.substring(group.prefix.length);
             const num = parseInt(numStr, 10);
             if (!isNaN(num) && num >= 1 && num <= group.max) {
@@ -520,11 +522,17 @@ function showAutocomplete(inputEl, autocompleteEl, val, onSelectName, iconDefaul
 
     let suggestions = [];
     for (const group of STICKER_GROUPS) {
-        for (let i = 1; i <= group.max; i++) {
-            const cleanCode = `${group.prefix}${i}`;
-            const displayCode = `${group.prefix} ${i}`;
-            if (cleanCode.includes(val)) {
-                suggestions.push(displayCode);
+        if (group.isSpecial) {
+            for (const c of group.codes) {
+                if (c.includes(val)) suggestions.push(c);
+            }
+        } else {
+            for (let i = 1; i <= group.max; i++) {
+                const cleanCode = `${group.prefix}${i}`;
+                const displayCode = `${group.prefix} ${i}`;
+                if (cleanCode.includes(val)) {
+                    suggestions.push(displayCode);
+                }
             }
         }
     }
@@ -702,9 +710,10 @@ function renderAlbum() {
                         <span class="text-info fw-bold" style="letter-spacing: 1px;">${name} (${group.prefix})</span>
                      </div>`;
 
-        for (let i = 1; i <= group.max; i++) {
-            const code = `${group.prefix} ${i}`;
-            const id = `sticker-${group.prefix}-${i}`;
+        const maxIter = group.isSpecial ? group.codes.length : group.max;
+        for (let i = 1; i <= maxIter; i++) {
+            const code = group.isSpecial ? group.codes[i - 1] : `${group.prefix} ${i}`;
+            const id = `sticker-${code.replace(' ', '-')}`;
             const isObtained = albumData.obtained.includes(code);
             const isRepeated = (albumData.repeated[code] || 0) > 0;
 
@@ -742,7 +751,11 @@ function renderRepeated() {
     repeatedKeys.sort((a, b) => {
         const [pA, nA] = a.split(' ');
         const [pB, nB] = b.split(' ');
-        if (pA === pB) return parseInt(nA) - parseInt(nB);
+        if (pA === pB) {
+            const numA = nA ? parseInt(nA) : 0;
+            const numB = nB ? parseInt(nB) : 0;
+            return numA - numB;
+        }
         return pA.localeCompare(pB);
     });
 
