@@ -1,5 +1,5 @@
 const STICKER_GROUPS = [
-    { prefix: '00', isSpecial: true, codes: ['00'], name: 'Intro', name_en: 'Intro' },
+    { prefix: '00', isSpecial: true, codes: ['00'], name: 'Panini', name_en: 'Panini' },
     { prefix: 'FWC', max: 19, name: 'FIFA' },
     { prefix: 'MEX', max: 20, name: 'México' },
     { prefix: 'RSA', max: 20, name: 'Sudáfrica' },
