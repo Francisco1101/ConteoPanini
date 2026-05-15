@@ -152,10 +152,10 @@ body {
 /* Top Controls */
 .top-controls {
     position: absolute;
-    top: 20px;
-    left: 20px;
-    right: 20px;
-    z-index: 15;
+    top: 40px;
+    left: 40px;
+    right: 40px;
+    z-index: 35;
 }
 
 /* Progress Bar */
