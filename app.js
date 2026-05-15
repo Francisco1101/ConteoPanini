@@ -1,4 +1,5 @@
 const STICKER_GROUPS = [
+    { prefix: '00', max: 1, name: 'Panini' },
     { prefix: 'FWC', max: 19, name: 'FIFA' },
     { prefix: 'MEX', max: 20, name: 'México' },
     { prefix: 'RSA', max: 20, name: 'Sudáfrica' },
@@ -302,7 +303,7 @@ function setupEventListeners() {
 
     elements.searchInput.addEventListener('input', handleAutocomplete);
     elements.inputNumber.addEventListener('input', handleAddAutocomplete);
-    
+
     // Hide autocomplete when clicking outside
     document.addEventListener('click', (e) => {
         if (!elements.searchInput.contains(e.target) && (!elements.searchAutocomplete || !elements.searchAutocomplete.contains(e.target))) {
@@ -527,9 +528,9 @@ function showAutocomplete(inputEl, autocompleteEl, val, onSelectName, iconDefaul
             }
         }
     }
-    
+
     suggestions = suggestions.slice(0, 8); // Top 8 results
-    
+
     if (suggestions.length === 0) {
         autocompleteEl.style.display = 'none';
         return;
@@ -557,13 +558,13 @@ function handleAddAutocomplete() {
     showAutocomplete(elements.inputNumber, elements.addAutocomplete, elements.inputNumber.value, 'selectAddAutocomplete', 'fa-hashtag');
 }
 
-window.selectAutocomplete = function(code) {
+window.selectAutocomplete = function (code) {
     elements.searchInput.value = code;
     elements.searchAutocomplete.style.display = 'none';
     handleSearch();
 };
 
-window.selectAddAutocomplete = function(code) {
+window.selectAddAutocomplete = function (code) {
     elements.inputNumber.value = code;
     elements.addAutocomplete.style.display = 'none';
     elements.inputNumber.focus();
@@ -634,14 +635,14 @@ function handleSearch() {
         const el = document.getElementById(elId);
         if (el) {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
+
             // Highlight animation
             const oldTransition = el.style.transition;
             el.style.transition = 'all 0.3s ease';
             el.style.boxShadow = '0 0 15px var(--accent-color)';
             el.style.transform = 'scale(1.1)';
             el.style.zIndex = '10';
-            
+
             setTimeout(() => {
                 el.style.boxShadow = '';
                 el.style.transform = '';
