@@ -25,26 +25,31 @@
     <div class="app-container">
         <!-- Header -->
         <header class="app-header text-center py-4 mb-4 position-relative">
-            <div class="top-controls d-flex justify-content-end gap-2 align-items-center">
-                <!-- Dropdown de Idioma -->
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="btn-lang"
-                        data-bs-toggle="dropdown" aria-expanded="false" title="Cambiar Idioma">
-                        <i class="fas fa-globe"></i> <span id="current-lang">ES</span>
+            <div class="top-controls d-flex justify-content-between align-items-center">
+                <!-- Logo -->
+                <img src="Img/FRAN_Letras-removebg-preview.png" alt="Fran Logo" style="height: 40px; object-fit: contain;">
+                
+                <div class="d-flex gap-2 align-items-center">
+                    <!-- Dropdown de Idioma -->
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="btn-lang"
+                            data-bs-toggle="dropdown" aria-expanded="false" title="Cambiar Idioma">
+                            <i class="fas fa-globe"></i> <span id="current-lang">ES</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="btn-lang">
+                            <li><a class="dropdown-item lang-option active" href="#" data-lang="es">🇪🇸 Español (ES)</a>
+                            </li>
+                            <li><a class="dropdown-item lang-option" href="#" data-lang="en">🇬🇧 English (EN)</a></li>
+                        </ul>
+                    </div>
+                    <!-- Botón de Tema -->
+                    <button class="btn btn-sm btn-outline-info" id="btn-theme" title="Cambiar Tema">
+                        <i class="fas fa-sun"></i>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="btn-lang">
-                        <li><a class="dropdown-item lang-option active" href="#" data-lang="es">🇪🇸 Español (ES)</a>
-                        </li>
-                        <li><a class="dropdown-item lang-option" href="#" data-lang="en">🇬🇧 English (EN)</a></li>
-                    </ul>
+                    <button class="btn btn-sm btn-outline-danger" id="btn-reset" title="Reiniciar Álbum">
+                        <i class="fas fa-trash-alt"></i> <span data-i18n="reset">Reiniciar</span>
+                    </button>
                 </div>
-                <!-- Botón de Tema -->
-                <button class="btn btn-sm btn-outline-info" id="btn-theme" title="Cambiar Tema">
-                    <i class="fas fa-sun"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger" id="btn-reset" title="Reiniciar Álbum">
-                    <i class="fas fa-trash-alt"></i> <span data-i18n="reset">Reiniciar</span>
-                </button>
             </div>
             <div class="logo-container">
                 <h1 class="display-4 fw-bold we-are-26-title">

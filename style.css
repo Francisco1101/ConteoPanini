@@ -152,6 +152,7 @@ body {
 .top-controls {
     position: absolute;
     top: 15px;
+    left: 15px;
     right: 15px;
     z-index: 10;
 }
@@ -388,7 +389,8 @@ body {
     
     .top-controls {
         position: static;
-        justify-content: center !important;
+        justify-content: space-between !important;
         margin-bottom: 1.5rem;
+        padding: 0 15px;
     }
 }
