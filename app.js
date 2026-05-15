@@ -469,14 +469,52 @@ function handleShare() {
         // Generate image
         canvas.toBlob(function(blob) {
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = currentLang === 'en' ? 'panini_progress.png' : 'panini_progreso.png';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('success', currentLang === 'en' ? 'Image downloaded!' : '¡Imagen descargada!');
+            
+            let canShare = false;
+            let file = null;
+            try {
+                file = new File([blob], 'panini_progreso.png', { type: 'image/png' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    canShare = true;
+                }
+            } catch (e) {}
+
+            Swal.fire({
+                title: currentLang === 'en' ? 'Share Progress' : 'Compartir Progreso',
+                imageUrl: url,
+                imageAlt: 'Preview',
+                imageWidth: '100%',
+                showCancelButton: true,
+                showDenyButton: canShare,
+                confirmButtonText: '<i class="fas fa-download"></i> ' + (currentLang === 'en' ? 'Download' : 'Descargar'),
+                denyButtonText: '<i class="fas fa-share-alt"></i> ' + (currentLang === 'en' ? 'Share' : 'Compartir'),
+                cancelButtonText: TRANSLATIONS[currentLang].sweetResetCancel,
+                confirmButtonColor: '#10b981',
+                denyButtonColor: '#3b82f6',
+                background: '#1e293b',
+                color: '#fff',
+                customClass: {
+                    image: 'rounded'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Download
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = currentLang === 'en' ? 'panini_progress.png' : 'panini_progreso.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    showToast('success', currentLang === 'en' ? 'Image downloaded!' : '¡Imagen descargada!');
+                } else if (result.isDenied && canShare) {
+                    // Share via Web Share API
+                    navigator.share({
+                        title: currentLang === 'en' ? 'My Panini Album Progress' : 'Mi progreso del álbum Panini',
+                        files: [file]
+                    }).catch(console.error);
+                }
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            });
         });
     }).catch(err => {
         titleEl.innerText = originalText;
