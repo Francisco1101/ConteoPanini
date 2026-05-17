@@ -26,7 +26,7 @@ const STICKER_GROUPS = [
     { prefix: 'SWE', max: 20, name: 'Suecia' },
     { prefix: 'TUN', max: 20, name: 'Túnez' },
     { prefix: 'BEL', max: 20, name: 'Bélgica' },
-    { prefix: 'EGI', max: 20, name: 'Egipto' },
+    { prefix: 'EGY', max: 20, name: 'Egipto' },
     { prefix: 'IRN', max: 20, name: 'Irán' },
     { prefix: 'NZL', max: 20, name: 'Nueva Zelanda' },
     { prefix: 'ESP', max: 20, name: 'España' },
@@ -259,6 +259,37 @@ function loadData() {
     if (saved) {
         try {
             albumData = JSON.parse(saved);
+
+            // Migración: cambiar EGI por EGY
+            let needsSave = false;
+            
+            if (albumData.obtained) {
+                albumData.obtained = albumData.obtained.map(code => {
+                    if (code.startsWith('EGI ')) {
+                        needsSave = true;
+                        return code.replace('EGI ', 'EGY ');
+                    }
+                    return code;
+                });
+            }
+
+            if (albumData.repeated) {
+                const newRepeated = {};
+                for (const code in albumData.repeated) {
+                    if (code.startsWith('EGI ')) {
+                        newRepeated[code.replace('EGI ', 'EGY ')] = albumData.repeated[code];
+                        needsSave = true;
+                    } else {
+                        newRepeated[code] = albumData.repeated[code];
+                    }
+                }
+                albumData.repeated = newRepeated;
+            }
+
+            if (needsSave) {
+                saveData();
+            }
+
         } catch (e) {
             console.error('Error loading data', e);
         }
@@ -467,9 +498,9 @@ function handleShare() {
         elements.btnShare.style.display = '';
 
         // Generate image
-        canvas.toBlob(function(blob) {
+        canvas.toBlob(function (blob) {
             const url = URL.createObjectURL(blob);
-            
+
             let canShare = false;
             let file = null;
             try {
@@ -477,7 +508,7 @@ function handleShare() {
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     canShare = true;
                 }
-            } catch (e) {}
+            } catch (e) { }
 
             Swal.fire({
                 title: currentLang === 'en' ? 'Share Progress' : 'Compartir Progreso',
