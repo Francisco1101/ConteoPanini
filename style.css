@@ -160,7 +160,7 @@ body {
 
 /* App Logo */
 .app-logo {
-    height: 60px;
+    height: 150px;
     object-fit: contain;
     transition: height 0.3s ease;
 }
@@ -459,6 +459,6 @@ body {
     }
 
     .app-logo {
-        height: 45px; /* Tamaño reducido para móviles */
+        height: 100px; /* Tamaño reducido para móviles */
     }
 }
