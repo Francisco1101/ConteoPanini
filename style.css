@@ -5,7 +5,7 @@
     --accent-hover: #06b6d4;
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
-    
+
     /* FIFA 26 Colors */
     --fifa-purple: #4b0082;
     --fifa-cyan: #00ffff;
@@ -21,12 +21,12 @@
     --text-muted: #475569;
 }
 
-[data-bs-theme="light"] .we-are-26-title .we, 
+[data-bs-theme="light"] .we-are-26-title .we,
 [data-bs-theme="light"] .we-are-26-title .are {
     color: #1e293b;
 }
 
-[data-bs-theme="light"] .form-control, 
+[data-bs-theme="light"] .form-control,
 [data-bs-theme="light"] .input-group-text,
 [data-bs-theme="light"] .form-select {
     background-color: rgba(255, 255, 255, 0.9);
@@ -68,7 +68,7 @@
 body {
     font-family: 'Outfit', sans-serif;
     background-color: var(--primary-bg);
-    background-image: 
+    background-image:
         radial-gradient(at 0% 0%, rgba(75, 0, 130, 0.3) 0px, transparent 50%),
         radial-gradient(at 100% 100%, rgba(0, 255, 255, 0.2) 0px, transparent 50%);
     background-attachment: fixed;
@@ -89,6 +89,16 @@ body {
 
 .glass-card:hover {
     box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+}
+
+.control-panel {
+    position: relative;
+    z-index: 20;
+}
+
+.search-panel {
+    position: relative;
+    z-index: 10;
 }
 
 /* Typography & Colors */
@@ -118,13 +128,15 @@ body {
     gap: 10px;
 }
 
-.we-are-26-title .we, .we-are-26-title .are {
+.we-are-26-title .we,
+.we-are-26-title .are {
     color: #fff;
 }
 
 .we-are-26-title .number {
     background: linear-gradient(45deg, var(--fifa-cyan), var(--fifa-pink));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     font-size: 5rem;
 }
@@ -137,6 +149,22 @@ body {
     font-size: 1rem;
 }
 
+/* Top Controls */
+.top-controls {
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    right: 40px;
+    z-index: 35;
+}
+
+/* App Logo */
+.app-logo {
+    height: 150px;
+    object-fit: contain;
+    transition: height 0.3s ease;
+}
+
 /* Progress Bar */
 .progress {
     background-color: rgba(255, 255, 255, 0.1);
@@ -145,8 +173,24 @@ body {
 }
 
 .progress-bar {
-    background: linear-gradient(90deg, var(--fifa-purple), var(--fifa-cyan));
+    position: relative;
+    background-color: transparent;
+    background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.15) 50%, rgba(255, 255, 255, 0.15) 75%, transparent 75%, transparent);
+    background-size: 1rem 1rem;
     transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: inherit;
+    overflow: hidden;
+}
+
+.progress-bar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, var(--fifa-purple), var(--fifa-cyan));
+    z-index: -1;
 }
 
 /* Stats Cards */
@@ -172,10 +216,21 @@ body {
     color: white;
 }
 
-.bg-primary-gradient { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-.bg-success-gradient { background: linear-gradient(135deg, #10b981, #059669); }
-.bg-warning-gradient { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.bg-danger-gradient { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.bg-primary-gradient {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.bg-success-gradient {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.bg-warning-gradient {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.bg-danger-gradient {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+}
 
 .stat-info h3 {
     margin: 0;
@@ -205,14 +260,17 @@ body {
 ::-webkit-scrollbar {
     width: 8px;
 }
+
 ::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.05);
     border-radius: 10px;
 }
+
 ::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
     border-radius: 10px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
 }
@@ -289,8 +347,15 @@ body {
 
 /* Animations */
 @keyframes popIn {
-    0% { transform: scale(0.8); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .animated-pop {
@@ -298,7 +363,8 @@ body {
 }
 
 /* Form Controls */
-.form-control, .input-group-text {
+.form-control,
+.input-group-text {
     background-color: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: white;
@@ -323,14 +389,92 @@ body {
     animation: popIn 0.3s ease;
 }
 
-.status-obtained { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; }
-.status-missing { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #f87171; }
-.status-repeated { background: rgba(245, 158, 11, 0.2); border: 1px solid #f59e0b; color: #fbbf24; }
+.status-obtained {
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid #10b981;
+    color: #34d399;
+}
+
+.status-missing {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid #ef4444;
+    color: #f87171;
+}
+
+.status-repeated {
+    background: rgba(245, 158, 11, 0.2);
+    border: 1px solid #f59e0b;
+    color: #fbbf24;
+}
+
+/* Autocomplete */
+.autocomplete-list {
+    background: #1e293b;
+    /* Solid color to prevent overlap visibility */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+    z-index: 1050;
+    overflow: hidden;
+}
+
+.autocomplete-item {
+    cursor: pointer;
+    background-color: transparent;
+    color: var(--text-main);
+    border-color: rgba(255, 255, 255, 0.05);
+}
+
+.autocomplete-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+}
+
+[data-bs-theme="light"] .autocomplete-list {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme="light"] .autocomplete-item {
+    background-color: transparent;
+    color: #1e293b;
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+[data-bs-theme="light"] .autocomplete-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-    .we-are-26-title { font-size: 2.5rem; }
-    .we-are-26-title .number { font-size: 3rem; }
-    .stat-card { flex-direction: column; text-align: center; gap: 0.5rem; padding: 1rem; }
-    .missing-grid { grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); }
+    .we-are-26-title {
+        font-size: 2.5rem;
+    }
+
+    .we-are-26-title .number {
+        font-size: 3rem;
+    }
+
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+        padding: 1rem;
+    }
+
+    .missing-grid {
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    }
+
+    .top-controls {
+        position: static;
+        justify-content: space-between !important;
+        margin-bottom: 1.5rem;
+        padding: 0 15px;
+    }
+
+    .app-logo {
+        height: 100px; /* Tamaño reducido para móviles */
+    }
 }

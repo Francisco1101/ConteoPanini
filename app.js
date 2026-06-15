@@ -1,7 +1,8 @@
 const STICKER_GROUPS = [
+    { prefix: '00', isSpecial: true, codes: ['00'], name: 'Panini', name_en: 'Panini' },
     { prefix: 'FWC', max: 19, name: 'FIFA' },
     { prefix: 'MEX', max: 20, name: 'México' },
-    { prefix: 'RAS', max: 20, name: 'Sudáfrica' },
+    { prefix: 'RSA', max: 20, name: 'Sudáfrica' },
     { prefix: 'KOR', max: 20, name: 'Corea del Sur' },
     { prefix: 'CZE', max: 20, name: 'República Checa' },
     { prefix: 'CAN', max: 20, name: 'Canadá' },
@@ -25,7 +26,7 @@ const STICKER_GROUPS = [
     { prefix: 'SWE', max: 20, name: 'Suecia' },
     { prefix: 'TUN', max: 20, name: 'Túnez' },
     { prefix: 'BEL', max: 20, name: 'Bélgica' },
-    { prefix: 'EGI', max: 20, name: 'Egipto' },
+    { prefix: 'EGY', max: 20, name: 'Egipto' },
     { prefix: 'IRN', max: 20, name: 'Irán' },
     { prefix: 'NZL', max: 20, name: 'Nueva Zelanda' },
     { prefix: 'ESP', max: 20, name: 'España' },
@@ -53,7 +54,7 @@ const STICKER_GROUPS = [
 
 const TRANSLATIONS = {
     es: {
-        title: "Control de Estampas Del Albúm del Mundial Panini 2026",
+        title: "Control de Estampas Del Álbum del Mundial Panini 2026",
         reset: "Reiniciar",
         progress: "Progreso del Álbum",
         total: "Total Álbum",
@@ -124,9 +125,9 @@ const TRANSLATIONS = {
 
 let currentLang = localStorage.getItem('panini2026_lang') || 'es';
 
-const TOTAL_STICKERS = STICKER_GROUPS.reduce((acc, g) => acc + g.max, 0);
+const TOTAL_STICKERS = STICKER_GROUPS.reduce((acc, g) => acc + (g.isSpecial ? g.codes.length : g.max), 0);
 
-let currentViewMode = 'ALL';
+let currentViewMode = localStorage.getItem('panini2026_viewmode') || 'ALL';
 let searchTimeout = null;
 
 let albumData = {
@@ -139,29 +140,32 @@ const elements = {
     form: document.getElementById('add-form'),
     inputNumber: document.getElementById('sticker-number'),
     isRepeated: document.getElementById('is-repeated'),
-    
+
     statTotal: document.getElementById('stat-total'),
     statObtained: document.getElementById('stat-obtained'),
     statRepeated: document.getElementById('stat-repeated'),
     statMissing: document.getElementById('stat-missing'),
-    
+
     progressBar: document.getElementById('progress-bar'),
     progressText: document.getElementById('progress-text'),
-    
+
     missingList: document.getElementById('album-list'), // Renamed visually but id kept as album-list
     repeatedList: document.getElementById('repeated-list'),
     badgeMissing: document.getElementById('stat-missing'), // Using the stat badge
     badgeRepeated: document.getElementById('badge-repeated'),
-    
+
     btnSortRepeated: document.getElementById('sort-repeated'),
     btnReset: document.getElementById('btn-reset'),
     btnTheme: document.getElementById('btn-theme'),
+    btnShare: document.getElementById('btn-share'),
     sectionFilter: document.getElementById('section-filter'),
-    
+
     searchInput: document.getElementById('search-input'),
     searchBtn: document.getElementById('search-btn'),
     searchResult: document.getElementById('search-result'),
-    
+    searchAutocomplete: document.getElementById('search-autocomplete'),
+    addAutocomplete: document.getElementById('add-autocomplete'),
+
     soundAdd: document.getElementById('sound-add'),
     soundError: document.getElementById('sound-error'),
     soundCelebrate: document.getElementById('sound-celebrate')
@@ -171,7 +175,7 @@ const elements = {
 function init() {
     loadTheme();
     loadData();
-    elements.statTotal.innerText = TOTAL_STICKERS; 
+    elements.statTotal.innerText = TOTAL_STICKERS;
     setLanguage(currentLang);
     populateFilters();
     updateUI();
@@ -204,7 +208,7 @@ function setTheme(theme) {
 function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('panini2026_lang', lang);
-    
+
     // Update texts
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
@@ -220,7 +224,7 @@ function setLanguage(lang) {
             el.placeholder = TRANSLATIONS[lang][key];
         }
     });
-    
+
     // Update active class in dropdown
     document.getElementById('current-lang').innerText = lang.toUpperCase();
     document.querySelectorAll('.lang-option').forEach(el => {
@@ -235,18 +239,20 @@ function setLanguage(lang) {
     populateFilters();
     renderRepeated();
     renderAlbum();
-    
+
     // Update current view mode title
     setViewMode(currentViewMode, true);
 }
 
 function populateFilters() {
+    const currentValue = elements.sectionFilter && elements.sectionFilter.value ? elements.sectionFilter.value : (localStorage.getItem('panini2026_section') || 'ALL');
     let html = `<option value="ALL">${TRANSLATIONS[currentLang].allSections}</option>`;
     STICKER_GROUPS.forEach(g => {
         const name = currentLang === 'en' && g.name_en ? g.name_en : g.name;
         html += `<option value="${g.prefix}">${name} (${g.prefix})</option>`;
     });
     elements.sectionFilter.innerHTML = html;
+    elements.sectionFilter.value = currentValue;
 }
 
 // Load from LocalStorage
@@ -255,6 +261,37 @@ function loadData() {
     if (saved) {
         try {
             albumData = JSON.parse(saved);
+
+            // Migración: cambiar EGI por EGY
+            let needsSave = false;
+            
+            if (albumData.obtained) {
+                albumData.obtained = albumData.obtained.map(code => {
+                    if (code.startsWith('EGI ')) {
+                        needsSave = true;
+                        return code.replace('EGI ', 'EGY ');
+                    }
+                    return code;
+                });
+            }
+
+            if (albumData.repeated) {
+                const newRepeated = {};
+                for (const code in albumData.repeated) {
+                    if (code.startsWith('EGI ')) {
+                        newRepeated[code.replace('EGI ', 'EGY ')] = albumData.repeated[code];
+                        needsSave = true;
+                    } else {
+                        newRepeated[code] = albumData.repeated[code];
+                    }
+                }
+                albumData.repeated = newRepeated;
+            }
+
+            if (needsSave) {
+                saveData();
+            }
+
         } catch (e) {
             console.error('Error loading data', e);
         }
@@ -282,19 +319,39 @@ function playSound(type) {
 function setupEventListeners() {
     elements.form.addEventListener('submit', handleAddSticker);
     elements.btnSortRepeated.addEventListener('click', renderRepeated);
-    
+
     elements.btnReset.addEventListener('click', handleReset);
     elements.btnTheme.addEventListener('click', toggleTheme);
-    elements.sectionFilter.addEventListener('change', renderAlbum);
-    
+    if (elements.btnShare) elements.btnShare.addEventListener('click', handleShare);
+    elements.sectionFilter.addEventListener('change', (e) => {
+        localStorage.setItem('panini2026_section', e.target.value);
+        renderAlbum();
+    });
+
     elements.searchBtn.addEventListener('click', handleSearch);
     elements.searchInput.addEventListener('keyup', (e) => {
-        if (e.key === 'Enter') handleSearch();
+        if (e.key === 'Enter') {
+            elements.searchAutocomplete.style.display = 'none';
+            handleSearch();
+        }
         if (elements.searchInput.value === '') {
             elements.searchResult.style.display = 'none';
         }
     });
-    
+
+    elements.searchInput.addEventListener('input', handleAutocomplete);
+    elements.inputNumber.addEventListener('input', handleAddAutocomplete);
+
+    // Hide autocomplete when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!elements.searchInput.contains(e.target) && (!elements.searchAutocomplete || !elements.searchAutocomplete.contains(e.target))) {
+            if (elements.searchAutocomplete) elements.searchAutocomplete.style.display = 'none';
+        }
+        if (!elements.inputNumber.contains(e.target) && (!elements.addAutocomplete || !elements.addAutocomplete.contains(e.target))) {
+            if (elements.addAutocomplete) elements.addAutocomplete.style.display = 'none';
+        }
+    });
+
     document.querySelectorAll('.lang-option').forEach(el => {
         el.addEventListener('click', (e) => {
             e.preventDefault();
@@ -308,7 +365,9 @@ function setupEventListeners() {
 function parseStickerCode(input) {
     const clean = input.trim().toUpperCase().replace(/\s+/g, '');
     for (const group of STICKER_GROUPS) {
-        if (clean.startsWith(group.prefix)) {
+        if (group.isSpecial) {
+            if (group.codes.includes(clean)) return clean;
+        } else if (clean.startsWith(group.prefix)) {
             const numStr = clean.substring(group.prefix.length);
             const num = parseInt(numStr, 10);
             if (!isNaN(num) && num >= 1 && num <= group.max) {
@@ -322,11 +381,11 @@ function parseStickerCode(input) {
 // Add Sticker Logic
 function handleAddSticker(e) {
     e.preventDefault();
-    
+
     const val = elements.inputNumber.value;
     const code = parseStickerCode(val);
     const isRep = elements.isRepeated.checked;
-    
+
     if (!code) {
         playSound('error');
         Swal.fire({
@@ -374,11 +433,11 @@ function handleAddSticker(e) {
             const msg = currentLang === 'en' ? `Sticker ${code} pasted in album!` : `¡Estampa ${code} pegada en el álbum!`;
             showToast('success', msg);
             playSound('add');
-            
+
             if (albumData.obtained.length === TOTAL_STICKERS) {
                 triggerCelebration();
             }
-            
+
             // Scroll to element
             setTimeout(() => {
                 const elId = `sticker-${code.replace(' ', '-')}`;
@@ -389,10 +448,10 @@ function handleAddSticker(e) {
             }, 100);
         }
     }
-    
+
     saveData();
     updateUI();
-    
+
     elements.inputNumber.value = '';
     elements.inputNumber.focus();
     elements.isRepeated.checked = false;
@@ -421,8 +480,88 @@ function handleReset() {
     });
 }
 
+// Share Logic
+function handleShare() {
+    const node = document.getElementById('share-node');
+    if (!node) return;
+
+    // Temporarily change text
+    const titleEl = document.getElementById('progress-title');
+    const originalText = titleEl.innerText;
+    const shareText = currentLang === 'en' ? "My Album's Progress" : "Progreso de mi álbum";
+    titleEl.innerText = shareText;
+
+    // Hide share button temporarily
+    elements.btnShare.style.display = 'none';
+
+    html2canvas(node, {
+        backgroundColor: document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#0f172a' : '#ffffff',
+        scale: 2
+    }).then(canvas => {
+        // Revert text and button
+        titleEl.innerText = originalText;
+        elements.btnShare.style.display = '';
+
+        // Generate image
+        canvas.toBlob(function (blob) {
+            const url = URL.createObjectURL(blob);
+
+            let canShare = false;
+            let file = null;
+            try {
+                file = new File([blob], 'panini_progreso.png', { type: 'image/png' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    canShare = true;
+                }
+            } catch (e) { }
+
+            Swal.fire({
+                title: currentLang === 'en' ? 'Share Progress' : 'Compartir Progreso',
+                imageUrl: url,
+                imageAlt: 'Preview',
+                imageWidth: '100%',
+                showCancelButton: true,
+                showDenyButton: canShare,
+                confirmButtonText: '<i class="fas fa-download"></i> ' + (currentLang === 'en' ? 'Download' : 'Descargar'),
+                denyButtonText: '<i class="fas fa-share-alt"></i> ' + (currentLang === 'en' ? 'Share' : 'Compartir'),
+                cancelButtonText: TRANSLATIONS[currentLang].sweetResetCancel,
+                confirmButtonColor: '#10b981',
+                denyButtonColor: '#3b82f6',
+                background: '#1e293b',
+                color: '#fff',
+                customClass: {
+                    image: 'rounded'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Download
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = currentLang === 'en' ? 'panini_progress.png' : 'panini_progreso.png';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    showToast('success', currentLang === 'en' ? 'Image downloaded!' : '¡Imagen descargada!');
+                } else if (result.isDenied && canShare) {
+                    // Share via Web Share API
+                    navigator.share({
+                        title: currentLang === 'en' ? 'My Panini Album Progress' : 'Mi progreso del álbum Panini',
+                        files: [file]
+                    }).catch(console.error);
+                }
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            });
+        });
+    }).catch(err => {
+        titleEl.innerText = originalText;
+        elements.btnShare.style.display = '';
+        console.error("Error generating image", err);
+        showToast('error', currentLang === 'en' ? 'Error generating image' : 'Error al generar imagen');
+    });
+}
+
 // Remove Repeated Sticker
-window.removeRepeated = function(codeStr) {
+window.removeRepeated = function (codeStr) {
     if (albumData.repeated[codeStr]) {
         albumData.repeated[codeStr]--;
         if (albumData.repeated[codeStr] <= 0) {
@@ -434,24 +573,25 @@ window.removeRepeated = function(codeStr) {
     }
 };
 
-window.setViewMode = function(mode, noToast = false) {
+window.setViewMode = function (mode, noToast = false) {
     currentViewMode = mode;
+    localStorage.setItem('panini2026_viewmode', mode);
     let title = TRANSLATIONS[currentLang].album;
     if (mode === 'MISSING') title = TRANSLATIONS[currentLang].albumMissing;
     if (mode === 'OBTAINED') title = TRANSLATIONS[currentLang].albumObtained;
     if (mode === 'REPEATED') title = TRANSLATIONS[currentLang].albumRepeated;
-    
+
     document.getElementById('album-title-text').innerText = title;
-    
+
     // Mostrar aviso
     if (!noToast) showToast('info', `${TRANSLATIONS[currentLang].toastFilter} ${title}`);
-    
+
     // Also scroll to album
-    if (!noToast) document.getElementById('album-panel').scrollIntoView({behavior: 'smooth'});
+    if (!noToast) document.getElementById('album-panel').scrollIntoView({ behavior: 'smooth' });
     renderAlbum();
 };
 
-window.handleGridClick = function(code) {
+window.handleGridClick = function (code) {
     const isObtained = albumData.obtained.includes(code);
     if (!isObtained) {
         albumData.obtained.push(code);
@@ -463,41 +603,156 @@ window.handleGridClick = function(code) {
         updateUI();
     } else {
         // Already have it
+        const isRepeated = (albumData.repeated[code] || 0) > 0;
+        let htmlContent = `
+            <p class="mb-4">${currentLang === 'en' ? "What do you want to do?" : "¿Qué deseas hacer?"}</p>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <button id="swal-btn-add-rep" class="btn text-white px-3 py-2 fw-semibold" style="background-color: #6366f1; border-radius: 8px; border: none;">
+                    ${currentLang === 'en' ? 'Add to repeated' : 'Agregar a repetidas'}
+                </button>
+                ${isRepeated ? `
+                <button id="swal-btn-rem-rep" class="btn text-black px-3 py-2 fw-semibold" style="background-color: #f59e0b; border-radius: 8px; border: none;">
+                    ${currentLang === 'en' ? 'Remove from repeated' : 'Quitar de repetidas'}
+                </button>
+                ` : ''}
+                <button id="swal-btn-rem-album" class="btn text-white px-3 py-2 fw-semibold" style="background-color: #ef4444; border-radius: 8px; border: none;">
+                    ${currentLang === 'en' ? 'Remove from album' : 'Quitar del álbum'}
+                </button>
+                <button id="swal-btn-cancel" class="btn text-white px-3 py-2 fw-semibold" style="background-color: #64748b; border-radius: 8px; border: none;">
+                    ${TRANSLATIONS[currentLang].sweetResetCancel}
+                </button>
+            </div>
+        `;
+
         Swal.fire({
             title: currentLang === 'en' ? `Sticker ${code}` : `Estampa ${code}`,
-            text: currentLang === 'en' ? "What do you want to do?" : "¿Qué deseas hacer?",
-            icon: 'question',
-            showCancelButton: true,
-            showDenyButton: true,
-            confirmButtonText: currentLang === 'en' ? 'Add to repeated' : 'Agregar a repetidas',
-            denyButtonText: currentLang === 'en' ? 'Remove from album' : 'Quitar del álbum',
-            cancelButtonText: TRANSLATIONS[currentLang].sweetResetCancel,
+            html: htmlContent,
+            showConfirmButton: false,
+            showCancelButton: false,
             background: '#1e293b',
-            color: '#fff'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                albumData.repeated[code] = (albumData.repeated[code] || 0) + 1;
-                showToast('success', TRANSLATIONS[currentLang].toastAddRep);
-                playSound('add');
-                saveData();
-                updateUI();
-            } else if (result.isDenied) {
-                albumData.obtained = albumData.obtained.filter(c => c !== code);
-                showToast('info', TRANSLATIONS[currentLang].toastDelAlbum);
-                saveData();
-                updateUI();
+            color: '#fff',
+            didOpen: () => {
+                const addRepBtn = document.getElementById('swal-btn-add-rep');
+                const remRepBtn = document.getElementById('swal-btn-rem-rep');
+                const remAlbBtn = document.getElementById('swal-btn-rem-album');
+                const cancelBtn = document.getElementById('swal-btn-cancel');
+
+                if (addRepBtn) {
+                    addRepBtn.addEventListener('click', () => {
+                        albumData.repeated[code] = (albumData.repeated[code] || 0) + 1;
+                        showToast('success', TRANSLATIONS[currentLang].toastAddRep);
+                        playSound('add');
+                        saveData();
+                        updateUI();
+                        Swal.close();
+                    });
+                }
+                if (remRepBtn) {
+                    remRepBtn.addEventListener('click', () => {
+                        if (albumData.repeated[code]) {
+                            albumData.repeated[code]--;
+                            if (albumData.repeated[code] <= 0) {
+                                delete albumData.repeated[code];
+                            }
+                            showToast('info', TRANSLATIONS[currentLang].toastDelRep);
+                            saveData();
+                            updateUI();
+                        }
+                        Swal.close();
+                    });
+                }
+                if (remAlbBtn) {
+                    remAlbBtn.addEventListener('click', () => {
+                        albumData.obtained = albumData.obtained.filter(c => c !== code);
+                        showToast('info', TRANSLATIONS[currentLang].toastDelAlbum);
+                        saveData();
+                        updateUI();
+                        Swal.close();
+                    });
+                }
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', () => {
+                        Swal.close();
+                    });
+                }
             }
         });
     }
+};
+
+// Autocomplete Logic
+function showAutocomplete(inputEl, autocompleteEl, val, onSelectName, iconDefault) {
+    val = val.trim().toUpperCase().replace(/\s+/g, '');
+    if (!val) {
+        autocompleteEl.style.display = 'none';
+        return;
+    }
+
+    let suggestions = [];
+    for (const group of STICKER_GROUPS) {
+        if (group.isSpecial) {
+            for (const c of group.codes) {
+                if (c.includes(val)) suggestions.push(c);
+            }
+        } else {
+            for (let i = 1; i <= group.max; i++) {
+                const cleanCode = `${group.prefix}${i}`;
+                const displayCode = `${group.prefix} ${i}`;
+                if (cleanCode.includes(val)) {
+                    suggestions.push(displayCode);
+                }
+            }
+        }
+    }
+
+    suggestions = suggestions.slice(0, 8); // Top 8 results
+
+    if (suggestions.length === 0) {
+        autocompleteEl.style.display = 'none';
+        return;
+    }
+
+    let html = '';
+    suggestions.forEach(code => {
+        const isObtained = albumData.obtained.includes(code);
+        let icon = `<i class="fas ${iconDefault} text-muted me-2"></i>`;
+        if (isObtained) {
+            icon = '<i class="fas fa-check text-success me-2" title="Ya obtenida"></i>';
+        }
+        html += `<li class="list-group-item list-group-item-action autocomplete-item" onclick="${onSelectName}('${code}')">${icon}${code}</li>`;
+    });
+
+    autocompleteEl.innerHTML = html;
+    autocompleteEl.style.display = 'block';
+}
+
+function handleAutocomplete() {
+    showAutocomplete(elements.searchInput, elements.searchAutocomplete, elements.searchInput.value, 'selectAutocomplete', 'fa-search');
+}
+
+function handleAddAutocomplete() {
+    showAutocomplete(elements.inputNumber, elements.addAutocomplete, elements.inputNumber.value, 'selectAddAutocomplete', 'fa-hashtag');
+}
+
+window.selectAutocomplete = function (code) {
+    elements.searchInput.value = code;
+    elements.searchAutocomplete.style.display = 'none';
+    handleSearch();
+};
+
+window.selectAddAutocomplete = function (code) {
+    elements.inputNumber.value = code;
+    elements.addAutocomplete.style.display = 'none';
+    elements.inputNumber.focus();
 };
 
 // Search Logic
 function handleSearch() {
     const val = elements.searchInput.value;
     if (!val) return;
-    
+
     const code = parseStickerCode(val);
-    
+
     if (!code) {
         Swal.fire({
             icon: 'error',
@@ -512,19 +767,19 @@ function handleSearch() {
         });
         return;
     }
-    
+
     const res = elements.searchResult;
     res.style.display = 'block';
     res.className = 'search-result-card mt-3 text-center position-relative';
-    
+
     let html = `
         <button type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Close" onclick="closeSearchResult()" style="font-size: 0.8rem; box-shadow: none;"></button>
         <h5>${currentLang === 'en' ? 'Sticker' : 'Estampa'} ${code}</h5>
     `;
-    
+
     const hasObtained = albumData.obtained.includes(code);
     const hasRepeated = (albumData.repeated[code] || 0) > 0;
-    
+
     if (hasObtained && hasRepeated) {
         res.classList.add('status-repeated');
         const txt = currentLang === 'en' ? `You have it and it's repeated (${albumData.repeated[code]}x)` : `La tienes y está repetida (${albumData.repeated[code]}x)`;
@@ -542,16 +797,43 @@ function handleSearch() {
         const txt = currentLang === 'en' ? `Missing` : `Te falta`;
         html += `<p class="mb-0"><i class="fas fa-times"></i> ${txt}</p>`;
     }
-    
+
     res.innerHTML = html;
-    
+
     if (searchTimeout) clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
         closeSearchResult();
     }, 3000);
+
+    // Scroll to element and highlight
+    setTimeout(() => {
+        const elId = `sticker-${code.replace(' ', '-')}`;
+        const el = document.getElementById(elId);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Highlight animation
+            const oldTransition = el.style.transition;
+            el.style.transition = 'all 0.3s ease';
+            el.style.boxShadow = '0 0 15px var(--accent-color)';
+            el.style.transform = 'scale(1.1)';
+            el.style.zIndex = '10';
+
+            setTimeout(() => {
+                el.style.boxShadow = '';
+                el.style.transform = '';
+                el.style.zIndex = '';
+                setTimeout(() => el.style.transition = oldTransition, 300);
+            }, 2000);
+        }
+    }, 100);
+
+    // Clear search input
+    elements.searchInput.value = '';
+    elements.searchInput.blur();
 }
 
-window.closeSearchResult = function() {
+window.closeSearchResult = function () {
     if (elements.searchResult) {
         elements.searchResult.style.display = 'none';
     }
@@ -567,18 +849,18 @@ function updateUI() {
 function updateStats() {
     const obtainedCount = albumData.obtained.length;
     const missingCount = TOTAL_STICKERS - obtainedCount;
-    
+
     let repeatedCount = 0;
     for (const code in albumData.repeated) {
         repeatedCount += albumData.repeated[code];
     }
-    
+
     const percentage = ((obtainedCount / TOTAL_STICKERS) * 100).toFixed(1);
-    
+
     elements.statObtained.innerText = obtainedCount;
     elements.statMissing.innerText = missingCount;
     elements.statRepeated.innerText = repeatedCount;
-    
+
     elements.progressBar.style.width = `${percentage}%`;
     elements.progressText.innerText = `${percentage}%`;
 }
@@ -586,60 +868,65 @@ function updateStats() {
 function renderAlbum() {
     let html = '';
     const filter = elements.sectionFilter.value;
-    
+
     for (const group of STICKER_GROUPS) {
         if (filter !== 'ALL' && filter !== group.prefix) continue;
-        
+
         let hasContent = false;
         const name = currentLang === 'en' && group.name_en ? group.name_en : group.name;
         let groupHtml = `<div class="w-100 mt-3" style="grid-column: 1 / -1; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; margin-bottom: 5px;">
                         <span class="text-info fw-bold" style="letter-spacing: 1px;">${name} (${group.prefix})</span>
                      </div>`;
-                     
-        for (let i = 1; i <= group.max; i++) {
-            const code = `${group.prefix} ${i}`;
-            const id = `sticker-${group.prefix}-${i}`;
+
+        const maxIter = group.isSpecial ? group.codes.length : group.max;
+        for (let i = 1; i <= maxIter; i++) {
+            const code = group.isSpecial ? group.codes[i - 1] : `${group.prefix} ${i}`;
+            const id = `sticker-${code.replace(' ', '-')}`;
             const isObtained = albumData.obtained.includes(code);
             const isRepeated = (albumData.repeated[code] || 0) > 0;
-            
+
             if (currentViewMode === 'MISSING' && isObtained) continue;
             if (currentViewMode === 'OBTAINED' && !isObtained) continue;
             if (currentViewMode === 'REPEATED' && !isRepeated) continue;
-            
+
             hasContent = true;
-            
+
             let stateClass = 'missing';
             if (isObtained) {
                 stateClass = isRepeated ? 'repeated-album' : 'obtained';
             }
-            
+
             groupHtml += `<div id="${id}" class="missing-item ${stateClass}" title="${code}" onclick="handleGridClick('${code}')">${code}</div>`;
         }
-        
+
         if (hasContent) {
             html += groupHtml;
         }
     }
-    
+
     elements.missingList.innerHTML = html;
 }
 
 function renderRepeated() {
     const repeatedKeys = Object.keys(albumData.repeated);
-    
+
     if (repeatedKeys.length === 0) {
         elements.repeatedList.innerHTML = `<li class="list-group-item text-center text-muted empty-msg" style="background:transparent; border:none;" data-i18n="noRepeated">${TRANSLATIONS[currentLang].noRepeated}</li>`;
         return;
     }
-    
+
     // Sort logically by group then number
     repeatedKeys.sort((a, b) => {
         const [pA, nA] = a.split(' ');
         const [pB, nB] = b.split(' ');
-        if (pA === pB) return parseInt(nA) - parseInt(nB);
+        if (pA === pB) {
+            const numA = nA ? parseInt(nA) : 0;
+            const numB = nB ? parseInt(nB) : 0;
+            return numA - numB;
+        }
         return pA.localeCompare(pB);
     });
-    
+
     let html = '';
     repeatedKeys.forEach(code => {
         const qty = albumData.repeated[code];
@@ -655,7 +942,7 @@ function renderRepeated() {
             </li>
         `;
     });
-    
+
     elements.repeatedList.innerHTML = html;
 }
 
@@ -686,22 +973,22 @@ function triggerCelebration() {
         confirmButtonText: currentLang === 'en' ? 'Awesome!' : '¡Increíble!',
         confirmButtonColor: '#10b981'
     });
-    
+
     var duration = 15 * 1000;
     var animationEnd = Date.now() + duration;
     var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
 
     function randomInRange(min, max) {
-      return Math.random() * (max - min) + min;
+        return Math.random() * (max - min) + min;
     }
 
-    var interval = setInterval(function() {
-      var timeLeft = animationEnd - Date.now();
-      if (timeLeft <= 0) return clearInterval(interval);
+    var interval = setInterval(function () {
+        var timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) return clearInterval(interval);
 
-      var particleCount = 50 * (timeLeft / duration);
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+        var particleCount = 50 * (timeLeft / duration);
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+        confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
     }, 250);
 }
 
