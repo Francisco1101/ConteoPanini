@@ -127,7 +127,7 @@ let currentLang = localStorage.getItem('panini2026_lang') || 'es';
 
 const TOTAL_STICKERS = STICKER_GROUPS.reduce((acc, g) => acc + (g.isSpecial ? g.codes.length : g.max), 0);
 
-let currentViewMode = 'ALL';
+let currentViewMode = localStorage.getItem('panini2026_viewmode') || 'ALL';
 let searchTimeout = null;
 
 let albumData = {
@@ -245,12 +245,14 @@ function setLanguage(lang) {
 }
 
 function populateFilters() {
+    const currentValue = elements.sectionFilter && elements.sectionFilter.value ? elements.sectionFilter.value : (localStorage.getItem('panini2026_section') || 'ALL');
     let html = `<option value="ALL">${TRANSLATIONS[currentLang].allSections}</option>`;
     STICKER_GROUPS.forEach(g => {
         const name = currentLang === 'en' && g.name_en ? g.name_en : g.name;
         html += `<option value="${g.prefix}">${name} (${g.prefix})</option>`;
     });
     elements.sectionFilter.innerHTML = html;
+    elements.sectionFilter.value = currentValue;
 }
 
 // Load from LocalStorage
@@ -321,7 +323,10 @@ function setupEventListeners() {
     elements.btnReset.addEventListener('click', handleReset);
     elements.btnTheme.addEventListener('click', toggleTheme);
     if (elements.btnShare) elements.btnShare.addEventListener('click', handleShare);
-    elements.sectionFilter.addEventListener('change', renderAlbum);
+    elements.sectionFilter.addEventListener('change', (e) => {
+        localStorage.setItem('panini2026_section', e.target.value);
+        renderAlbum();
+    });
 
     elements.searchBtn.addEventListener('click', handleSearch);
     elements.searchInput.addEventListener('keyup', (e) => {
@@ -570,6 +575,7 @@ window.removeRepeated = function (codeStr) {
 
 window.setViewMode = function (mode, noToast = false) {
     currentViewMode = mode;
+    localStorage.setItem('panini2026_viewmode', mode);
     let title = TRANSLATIONS[currentLang].album;
     if (mode === 'MISSING') title = TRANSLATIONS[currentLang].albumMissing;
     if (mode === 'OBTAINED') title = TRANSLATIONS[currentLang].albumObtained;
@@ -597,29 +603,78 @@ window.handleGridClick = function (code) {
         updateUI();
     } else {
         // Already have it
+        const isRepeated = (albumData.repeated[code] || 0) > 0;
+        let htmlContent = `
+            <p class="mb-4">${currentLang === 'en' ? "What do you want to do?" : "¿Qué deseas hacer?"}</p>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <button id="swal-btn-add-rep" class="btn text-white px-3 py-2 fw-semibold" style="background-color: #6366f1; border-radius: 8px; border: none;">
+                    ${currentLang === 'en' ? 'Add to repeated' : 'Agregar a repetidas'}
+                </button>
+                ${isRepeated ? `
+                <button id="swal-btn-rem-rep" class="btn text-black px-3 py-2 fw-semibold" style="background-color: #f59e0b; border-radius: 8px; border: none;">
+                    ${currentLang === 'en' ? 'Remove from repeated' : 'Quitar de repetidas'}
+                </button>
+                ` : ''}
+                <button id="swal-btn-rem-album" class="btn text-white px-3 py-2 fw-semibold" style="background-color: #ef4444; border-radius: 8px; border: none;">
+                    ${currentLang === 'en' ? 'Remove from album' : 'Quitar del álbum'}
+                </button>
+                <button id="swal-btn-cancel" class="btn text-white px-3 py-2 fw-semibold" style="background-color: #64748b; border-radius: 8px; border: none;">
+                    ${TRANSLATIONS[currentLang].sweetResetCancel}
+                </button>
+            </div>
+        `;
+
         Swal.fire({
             title: currentLang === 'en' ? `Sticker ${code}` : `Estampa ${code}`,
-            text: currentLang === 'en' ? "What do you want to do?" : "¿Qué deseas hacer?",
-            icon: 'question',
-            showCancelButton: true,
-            showDenyButton: true,
-            confirmButtonText: currentLang === 'en' ? 'Add to repeated' : 'Agregar a repetidas',
-            denyButtonText: currentLang === 'en' ? 'Remove from album' : 'Quitar del álbum',
-            cancelButtonText: TRANSLATIONS[currentLang].sweetResetCancel,
+            html: htmlContent,
+            showConfirmButton: false,
+            showCancelButton: false,
             background: '#1e293b',
-            color: '#fff'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                albumData.repeated[code] = (albumData.repeated[code] || 0) + 1;
-                showToast('success', TRANSLATIONS[currentLang].toastAddRep);
-                playSound('add');
-                saveData();
-                updateUI();
-            } else if (result.isDenied) {
-                albumData.obtained = albumData.obtained.filter(c => c !== code);
-                showToast('info', TRANSLATIONS[currentLang].toastDelAlbum);
-                saveData();
-                updateUI();
+            color: '#fff',
+            didOpen: () => {
+                const addRepBtn = document.getElementById('swal-btn-add-rep');
+                const remRepBtn = document.getElementById('swal-btn-rem-rep');
+                const remAlbBtn = document.getElementById('swal-btn-rem-album');
+                const cancelBtn = document.getElementById('swal-btn-cancel');
+
+                if (addRepBtn) {
+                    addRepBtn.addEventListener('click', () => {
+                        albumData.repeated[code] = (albumData.repeated[code] || 0) + 1;
+                        showToast('success', TRANSLATIONS[currentLang].toastAddRep);
+                        playSound('add');
+                        saveData();
+                        updateUI();
+                        Swal.close();
+                    });
+                }
+                if (remRepBtn) {
+                    remRepBtn.addEventListener('click', () => {
+                        if (albumData.repeated[code]) {
+                            albumData.repeated[code]--;
+                            if (albumData.repeated[code] <= 0) {
+                                delete albumData.repeated[code];
+                            }
+                            showToast('info', TRANSLATIONS[currentLang].toastDelRep);
+                            saveData();
+                            updateUI();
+                        }
+                        Swal.close();
+                    });
+                }
+                if (remAlbBtn) {
+                    remAlbBtn.addEventListener('click', () => {
+                        albumData.obtained = albumData.obtained.filter(c => c !== code);
+                        showToast('info', TRANSLATIONS[currentLang].toastDelAlbum);
+                        saveData();
+                        updateUI();
+                        Swal.close();
+                    });
+                }
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', () => {
+                        Swal.close();
+                    });
+                }
             }
         });
     }
