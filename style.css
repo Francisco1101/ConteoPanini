@@ -151,10 +151,11 @@ body {
 
 /* Top Controls */
 .top-controls {
-    position: absolute;
-    top: 40px;
-    left: 40px;
-    right: 40px;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
     z-index: 35;
 }
 
