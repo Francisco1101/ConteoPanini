@@ -43,10 +43,13 @@
                             </li>
                             <li><a class="dropdown-item lang-option" href="#" data-lang="en">🇬🇧 English (EN)</a></li>
                         </ul>
-                    </div>
-                    <!-- Botón de Tema -->
+                               <!-- Botón de Tema -->
                     <button class="btn btn-sm btn-outline-info" id="btn-theme" title="Cambiar Tema">
                         <i class="fas fa-sun"></i>
+                    </button>
+                    <!-- Botón de Copiar Álbum -->
+                    <button class="btn btn-sm btn-outline-success" id="btn-copy-album" title="Copiar Álbum">
+                        <i class="fas fa-qrcode"></i> <span data-i18n="copyAlbum">Copiar Álbum</span>
                     </button>
                     <button class="btn btn-sm btn-outline-danger" id="btn-reset" title="Reiniciar Álbum">
                         <i class="fas fa-trash-alt"></i> <span data-i18n="reset">Reiniciar</span>
@@ -230,7 +233,7 @@
                 <h5 class="mb-3 text-accent"><i class="fas fa-id-card"></i> Contacto / Contact</h5>
                 <div class="d-flex justify-content-center flex-wrap gap-4 mb-4">
                     <span class="text-light" style="color: var(--text-color) !important;"><i
-                            class="fas fa-user text-info"></i> Fran</span>
+                             class="fas fa-user text-info"></i> Fran</span>
                     <a href="mailto:francisco.a.m.c.11@gmail.com" class="text-decoration-none text-light"
                         style="color: var(--text-color) !important;"><i class="fas fa-envelope text-info"></i>
                         francisco.a.m.c.11@gmail.com</a>
@@ -267,8 +270,9 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <!-- HTML2Canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- QRious Library for QR code generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <!-- App Script -->
     <script src="app.js"></script>
 </body>
-
 </html>

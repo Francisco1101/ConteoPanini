@@ -85,7 +85,17 @@ const TRANSLATIONS = {
         toastReset: "Álbum reiniciado",
         toastDelRep: "Una estampa repetida eliminada",
         invalidCode: "Código Inválido",
-        invalidCodeDesc: "Revisa el código (Ej. MEX 1, FWC 5)"
+        invalidCodeDesc: "Revisa el código (Ej. MEX 1, FWC 5)",
+        copyAlbum: "Copiar Álbum",
+        copyAlbumTitle: "Copiar Álbum / Compartir Progreso",
+        copyAlbumDesc: "Escanea este código QR con la cámara de otro teléfono para copiar automáticamente todo tu progreso, o copia el enlace directo.",
+        copyLinkBtn: "Copiar Enlace Directo",
+        linkCopied: "¡Enlace copiado al portapapeles!",
+        importTitle: "Importar Álbum",
+        importDesc: "Hemos detectado un álbum compartido. ¿Deseas importar estas figuritas? Esto reemplazará tu progreso actual de forma permanente.",
+        importConfirm: "Sí, importar",
+        importCancel: "Cancelar",
+        importSuccess: "¡Álbum importado con éxito!"
     },
     en: {
         title: "Panini 2026 World Cup Album Sticker Tracker",
@@ -119,7 +129,17 @@ const TRANSLATIONS = {
         toastReset: "Album reset",
         toastDelRep: "A repeated sticker removed",
         invalidCode: "Invalid Code",
-        invalidCodeDesc: "Check the code (E.g. MEX 1, FWC 5)"
+        invalidCodeDesc: "Check the code (E.g. MEX 1, FWC 5)",
+        copyAlbum: "Copy Album",
+        copyAlbumTitle: "Copy Album / Share Progress",
+        copyAlbumDesc: "Scan this QR code with another phone's camera to copy all your progress automatically, or copy the direct link.",
+        copyLinkBtn: "Copy Direct Link",
+        linkCopied: "Link copied to clipboard!",
+        importTitle: "Import Album",
+        importDesc: "We have detected a shared album. Do you want to import these stickers? This will permanently replace your current progress.",
+        importConfirm: "Yes, import",
+        importCancel: "Cancel",
+        importSuccess: "Album imported successfully!"
     }
 };
 
@@ -156,6 +176,7 @@ const elements = {
 
     btnSortRepeated: document.getElementById('sort-repeated'),
     btnReset: document.getElementById('btn-reset'),
+    btnCopyAlbum: document.getElementById('btn-copy-album'),
     btnTheme: document.getElementById('btn-theme'),
     btnShare: document.getElementById('btn-share'),
     sectionFilter: document.getElementById('section-filter'),
@@ -180,6 +201,7 @@ function init() {
     populateFilters();
     updateUI();
     setupEventListeners();
+    checkImportParam();
 }
 
 function loadTheme() {
@@ -321,6 +343,7 @@ function setupEventListeners() {
     elements.btnSortRepeated.addEventListener('click', renderRepeated);
 
     elements.btnReset.addEventListener('click', handleReset);
+    if (elements.btnCopyAlbum) elements.btnCopyAlbum.addEventListener('click', handleCopyAlbum);
     elements.btnTheme.addEventListener('click', toggleTheme);
     if (elements.btnShare) elements.btnShare.addEventListener('click', handleShare);
     elements.sectionFilter.addEventListener('change', (e) => {
@@ -990,6 +1013,189 @@ function triggerCelebration() {
         confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
         confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
     }, 250);
+}
+
+function getAllStickerCodes() {
+    const list = [];
+    for (const group of STICKER_GROUPS) {
+        const maxIter = group.isSpecial ? group.codes.length : group.max;
+        for (let i = 1; i <= maxIter; i++) {
+            const code = group.isSpecial ? group.codes[i - 1] : `${group.prefix} ${i}`;
+            list.push(code);
+        }
+    }
+    return list;
+}
+
+function encodeAlbum(data) {
+    const codes = getAllStickerCodes();
+    let result = '';
+    for (const code of codes) {
+        const obtained = data.obtained.includes(code);
+        const repeated = data.repeated[code] || 0;
+        const cappedRepeated = Math.min(repeated, 17);
+        const val = (obtained ? 1 : 0) + (cappedRepeated * 2);
+        result += val.toString(36);
+    }
+    
+    // RLE compression
+    let compressed = '';
+    let i = 0;
+    while (i < result.length) {
+        const char = result[i];
+        let count = 1;
+        while (i + count < result.length && result[i + count] === char) {
+            count++;
+        }
+        if (count > 3) {
+            compressed += char + '~' + count;
+            i += count;
+        } else {
+            compressed += char;
+            i++;
+        }
+    }
+    return compressed;
+}
+
+function decodeAlbum(str) {
+    let expanded = '';
+    let i = 0;
+    while (i < str.length) {
+        if (i + 1 < str.length && str[i + 1] === '~') {
+            const char = str[i];
+            let countStr = '';
+            let j = i + 2;
+            while (j < str.length && /\d/.test(str[j])) {
+                countStr += str[j];
+                j++;
+            }
+            const count = parseInt(countStr, 10);
+            expanded += char.repeat(count);
+            i = j;
+        } else {
+            expanded += str[i];
+            i++;
+        }
+    }
+    
+    const codes = getAllStickerCodes();
+    const obtained = [];
+    const repeated = {};
+    
+    for (let idx = 0; idx < codes.length; idx++) {
+        const char = expanded[idx];
+        if (!char) continue;
+        const val = parseInt(char, 36);
+        if (isNaN(val)) continue;
+        const isObtained = (val % 2) === 1;
+        const repeatedCount = Math.floor(val / 2);
+        
+        const code = codes[idx];
+        if (isObtained) {
+            obtained.push(code);
+        }
+        if (repeatedCount > 0) {
+            repeated[code] = repeatedCount;
+        }
+    }
+    
+    return { obtained, repeated };
+}
+
+function handleCopyAlbum() {
+    const encoded = encodeAlbum(albumData);
+    const origin = window.location.origin + window.location.pathname;
+    const shareUrl = `${origin}?import=${encodeURIComponent(encoded)}`;
+    
+    const isEn = currentLang === 'en';
+    const title = TRANSLATIONS[currentLang].copyAlbumTitle;
+    const desc = TRANSLATIONS[currentLang].copyAlbumDesc;
+    const btnText = TRANSLATIONS[currentLang].copyLinkBtn;
+    
+    Swal.fire({
+        title: title,
+        html: `
+            <p class="small text-muted mb-3">${desc}</p>
+            <div class="d-flex justify-content-center my-3 p-3 bg-white rounded" style="width: fit-content; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <canvas id="qr-canvas"></canvas>
+            </div>
+            <button id="btn-copy-link" class="btn btn-outline-info w-100 mt-2">
+                <i class="fas fa-copy me-2"></i>${btnText}
+            </button>
+        `,
+        background: '#1e293b',
+        color: '#fff',
+        showConfirmButton: true,
+        confirmButtonColor: '#10b981',
+        confirmButtonText: isEn ? 'Close' : 'Cerrar',
+        didOpen: () => {
+            new QRious({
+                element: document.getElementById('qr-canvas'),
+                value: shareUrl,
+                size: 200,
+                level: 'M'
+            });
+            
+            const copyBtn = document.getElementById('btn-copy-link');
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    showToast('success', TRANSLATIONS[currentLang].linkCopied);
+                }).catch(err => {
+                    console.error('Error copying text: ', err);
+                });
+            });
+        }
+    });
+}
+
+function checkImportParam() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const importData = urlParams.get('import');
+    if (importData) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        handleImportData(importData);
+    }
+}
+
+function handleImportData(importStr) {
+    try {
+        const decoded = decodeAlbum(importStr);
+        if (!decoded || (!decoded.obtained.length && Object.keys(decoded.repeated).length === 0)) {
+            throw new Error('Invalid or empty album data');
+        }
+        
+        Swal.fire({
+            title: TRANSLATIONS[currentLang].importTitle,
+            text: TRANSLATIONS[currentLang].importDesc,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#ef4444',
+            confirmButtonText: TRANSLATIONS[currentLang].importConfirm,
+            cancelButtonText: TRANSLATIONS[currentLang].importCancel,
+            background: '#1e293b',
+            color: '#fff'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                albumData = decoded;
+                saveData();
+                updateUI();
+                playSound('celebrate');
+                showToast('success', TRANSLATIONS[currentLang].importSuccess);
+            }
+        });
+    } catch (e) {
+        console.error('Failed to import album', e);
+        playSound('error');
+        Swal.fire({
+            icon: 'error',
+            title: currentLang === 'en' ? 'Import Failed' : 'Importación Fallida',
+            text: currentLang === 'en' ? 'The shared album link is invalid or corrupted.' : 'El enlace de álbum compartido no es válido o está dañado.',
+            background: '#1e293b',
+            color: '#fff'
+        });
+    }
 }
 
 // Boot
