@@ -1029,74 +1029,84 @@ function getAllStickerCodes() {
 
 function encodeAlbum(data) {
     const codes = getAllStickerCodes();
-    let result = '';
-    for (const code of codes) {
-        const obtained = data.obtained.includes(code);
-        const repeated = data.repeated[code] || 0;
-        const cappedRepeated = Math.min(repeated, 17);
-        const val = (obtained ? 1 : 0) + (cappedRepeated * 2);
-        result += val.toString(36);
+    
+    // 1. Bitmask obtained
+    const bytes = new Uint8Array(Math.ceil(codes.length / 8));
+    for (let i = 0; i < codes.length; i++) {
+        if (data.obtained.includes(codes[i])) {
+            const byteIdx = Math.floor(i / 8);
+            const bitIdx = i % 8;
+            bytes[byteIdx] |= (1 << bitIdx);
+        }
     }
     
-    // RLE compression
-    let compressed = '';
-    let i = 0;
-    while (i < result.length) {
-        const char = result[i];
-        let count = 1;
-        while (i + count < result.length && result[i + count] === char) {
-            count++;
-        }
-        if (count > 3) {
-            compressed += char + '~' + count;
-            i += count;
-        } else {
-            compressed += char;
-            i++;
+    // Find last non-zero byte to truncate trailing zeros
+    let lastNonZero = -1;
+    for (let i = bytes.length - 1; i >= 0; i--) {
+        if (bytes[i] !== 0) {
+            lastNonZero = i;
+            break;
         }
     }
-    return compressed;
+    
+    const trimmed = bytes.slice(0, lastNonZero + 1);
+    let binary = '';
+    for (let i = 0; i < trimmed.length; i++) {
+        binary += String.fromCharCode(trimmed[i]);
+    }
+    const base64Obtained = btoa(binary);
+    
+    // 2. Repeated list (base36 indexes and quantities)
+    const repeatedParts = [];
+    for (const code in data.repeated) {
+        const qty = data.repeated[code];
+        if (qty > 0) {
+            const idx = codes.indexOf(code);
+            if (idx !== -1) {
+                repeatedParts.push(idx.toString(36) + '.' + qty.toString(36));
+            }
+        }
+    }
+    
+    return base64Obtained + '|' + repeatedParts.join('_');
 }
 
 function decodeAlbum(str) {
-    let expanded = '';
-    let i = 0;
-    while (i < str.length) {
-        if (i + 1 < str.length && str[i + 1] === '~') {
-            const char = str[i];
-            let countStr = '';
-            let j = i + 2;
-            while (j < str.length && /\d/.test(str[j])) {
-                countStr += str[j];
-                j++;
-            }
-            const count = parseInt(countStr, 10);
-            expanded += char.repeat(count);
-            i = j;
-        } else {
-            expanded += str[i];
-            i++;
-        }
-    }
-    
+    const [base64Obtained, repeatedStr] = str.split('|');
     const codes = getAllStickerCodes();
     const obtained = [];
     const repeated = {};
     
-    for (let idx = 0; idx < codes.length; idx++) {
-        const char = expanded[idx];
-        if (!char) continue;
-        const val = parseInt(char, 36);
-        if (isNaN(val)) continue;
-        const isObtained = (val % 2) === 1;
-        const repeatedCount = Math.floor(val / 2);
-        
-        const code = codes[idx];
-        if (isObtained) {
-            obtained.push(code);
+    // 1. Decode obtained from bitmask
+    if (base64Obtained) {
+        const binary = atob(base64Obtained);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
         }
-        if (repeatedCount > 0) {
-            repeated[code] = repeatedCount;
+        
+        for (let i = 0; i < codes.length; i++) {
+            const byteIdx = Math.floor(i / 8);
+            if (byteIdx < bytes.length) {
+                const bitIdx = i % 8;
+                if ((bytes[byteIdx] & (1 << bitIdx)) !== 0) {
+                    obtained.push(codes[i]);
+                }
+            }
+        }
+    }
+    
+    // 2. Decode repeated list
+    if (repeatedStr) {
+        const parts = repeatedStr.split('_');
+        for (const part of parts) {
+            if (!part) continue;
+            const [idxStr, qtyStr] = part.split('.');
+            const idx = parseInt(idxStr, 36);
+            const qty = parseInt(qtyStr, 36);
+            if (!isNaN(idx) && idx >= 0 && idx < codes.length && !isNaN(qty) && qty > 0) {
+                repeated[codes[idx]] = qty;
+            }
         }
     }
     
