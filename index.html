@@ -24,45 +24,46 @@
 <body>
     <div class="app-container">
         <!-- Header -->
-        <header class="app-header text-center py-4 mb-4 position-relative">
-            <div class="top-controls d-flex justify-content-between align-items-center">
-                <!-- Logo -->
-                <img src="Img/FRAN_Letras-removebg-preview.png" alt="Fran Logo"
-                    class="app-logo">
-
-                <div class="d-flex gap-2 align-items-center">
-                    <!-- Dropdown de Idioma -->
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="btn-lang"
-                            data-bs-toggle="dropdown" aria-expanded="false" title="Cambiar Idioma">
-                            <i class="fas fa-globe"></i> <span id="current-lang">ES</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="btn-lang">
-                            <li><a class="dropdown-item lang-option active" href="#" data-lang="es">🇪🇸 Español
-                                    (ES)</a>
-                            </li>
-                            <li><a class="dropdown-item lang-option" href="#" data-lang="en">🇬🇧 English (EN)</a></li>
-                        </ul>
-                               <!-- Botón de Tema -->
-                    <button class="btn btn-sm btn-outline-info" id="btn-theme" title="Cambiar Tema">
-                        <i class="fas fa-sun"></i>
-                    </button>
-                    <!-- Botón de Copiar Álbum -->
-                    <button class="btn btn-sm btn-outline-success" id="btn-copy-album" title="Copiar Álbum">
-                        <i class="fas fa-qrcode"></i> <span data-i18n="copyAlbum">Copiar Álbum</span>
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" id="btn-reset" title="Reiniciar Álbum">
-                        <i class="fas fa-trash-alt"></i> <span data-i18n="reset">Reiniciar</span>
-                    </button>
-                </div>
+        <header class="app-header py-4 mb-4">
+            <!-- Left: Logo -->
+            <div class="header-left">
+                <img src="Img/FRAN_Letras-removebg-preview.png" alt="Fran Logo" class="app-logo">
             </div>
-            <div class="logo-container">
+
+            <!-- Center: Title -->
+            <div class="logo-container text-center">
                 <h1 class="display-4 fw-bold we-are-26-title">
                     <span class="we">WE</span>
                     <span class="are">ARE</span>
                     <span class="number">26</span>
                 </h1>
                 <p class="lead subtitle" data-i18n="title">Control de Estampas Del Álbum del Mundial Panini 2026</p>
+            </div>
+
+            <!-- Right: Controls -->
+            <div class="header-right d-flex gap-2 align-items-center justify-content-end">
+                <!-- Dropdown de Idioma -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="btn-lang"
+                        data-bs-toggle="dropdown" aria-expanded="false" title="Cambiar Idioma">
+                        <i class="fas fa-globe"></i> <span id="current-lang">ES</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="btn-lang">
+                        <li><a class="dropdown-item lang-option active" href="#" data-lang="es">🇪🇸 Español (ES)</a></li>
+                        <li><a class="dropdown-item lang-option" href="#" data-lang="en">🇬🇧 English (EN)</a></li>
+                    </ul>
+                </div>
+                <!-- Botón de Tema -->
+                <button class="btn btn-sm btn-outline-info" id="btn-theme" title="Cambiar Tema">
+                    <i class="fas fa-sun"></i>
+                </button>
+                <!-- Botón de Copiar Álbum -->
+                <button class="btn btn-sm btn-outline-success" id="btn-copy-album" title="Copiar Álbum">
+                    <i class="fas fa-qrcode"></i> <span data-i18n="copyAlbum">Copiar Álbum</span>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" id="btn-reset" title="Reiniciar Álbum">
+                    <i class="fas fa-trash-alt"></i> <span data-i18n="reset">Reiniciar</span>
+                </button>
             </div>
         </header>
 
